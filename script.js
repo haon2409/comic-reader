@@ -152,19 +152,28 @@ async function loadMangaContent(slug, chapterId) {
         errorMessage.style.display = 'none';
         document.getElementById('chapter-navigation').style.display = 'flex';
         
-        // Set current chapter ID first
-        currentChapterId = chapterId;
-        
-        // Fetch manga information and set chapter index
-        await fetchMangaInfo(slug);
-        
-        // Wait for chapter index to be set
-        if (currentChapterIndex === -1) {
+        try {
+            // Set current chapter ID first
+            currentChapterId = chapterId;
+            
+            // Fetch manga information first
+            await fetchMangaInfo(slug);
+            
+            // Set chapter index after manga info is loaded
             currentChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId);
+            
+            if (currentChapterIndex === -1) {
+                // If chapter not found, default to first chapter
+                currentChapterIndex = 0;
+                currentChapterId = chapters[0].id;
+            }
+            
+            // Now fetch chapter content with confirmed chapter ID
+            await fetchChapterContent(slug, currentChapterId);
+        } catch (error) {
+            console.error('Error in loadMangaContent:', error);
+            throw error;
         }
-        
-        // Now fetch chapter content
-        await fetchChapterContent(slug, chapterId);
         
         // Update navigation buttons
         updateNavigation();
