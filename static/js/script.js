@@ -109,21 +109,49 @@ async function loadMangaContent(slug, chapterId) {
 // Fetch manga information (title, chapters list, etc.)
 async function fetchMangaInfo(slug) {
     try {
-        // This is a placeholder for the actual API endpoint
-        // In a real application, you would use the actual API endpoint
-        const apiUrl = `https://api.example.com/manga/${slug}`;
+        // Use the actual API endpoint for manga information
+        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${slug}`;
         
-        // For this static demo, we'll simulate that chapter information is fetched
-        // In a real app, you would replace this with an actual fetch call
         console.log(`Fetching manga info from: ${apiUrl}`);
         
-        // Simulating API response for development
-        // In a real app, replace this with actual API call
-        chapters = [
-            { id: '653a18aa19227e32c83a9079', number: 1, title: 'Chapter 1' },
-            { id: '653a18aa19227e32c83a9080', number: 2, title: 'Chapter 2' },
-            { id: '653a18aa19227e32c83a9081', number: 3, title: 'Chapter 3' }
-        ];
+        // Fetch the manga data
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Check if data is valid and has expected structure
+        if (!data || !data.data || !data.data.item || !data.data.item.chapters) {
+            throw new Error('Invalid API response structure');
+        }
+        
+        // Update manga title if available
+        if (data.data.item.name) {
+            mangaTitle.textContent = data.data.item.name;
+        }
+        
+        // Extract chapters from the API response
+        const chaptersData = data.data.item.chapters[0].server_data || [];
+        
+        // Transform the chapter data into our format
+        chapters = chaptersData.map(chapter => {
+            // Extract chapter_id from chapter_api_data
+            const chapterApiUrl = chapter.chapter_api_data;
+            const chapterId = chapterApiUrl.split('/').pop();
+            
+            return {
+                id: chapterId,
+                number: parseInt(chapter.chapter_name) || 0,
+                title: chapter.chapter_title || '',
+                filename: chapter.filename || ''
+            };
+        });
+        
+        // Sort chapters in ascending order (chapter 1, 2, 3...)
+        chapters.sort((a, b) => a.number - b.number);
         
         // Find the current chapter index
         currentChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId);
@@ -133,38 +161,52 @@ async function fetchMangaInfo(slug) {
         
     } catch (error) {
         console.error('Error fetching manga info:', error);
-        throw new Error('Failed to fetch manga information');
+        throw new Error('Failed to fetch manga information: ' + error.message);
     }
 }
 
 // Fetch chapter content (pages/images)
 async function fetchChapterContent(slug, chapterId) {
     try {
-        // This is a placeholder for the actual API endpoint
-        // In a real application, you would use the actual API endpoint
-        const apiUrl = `https://api.example.com/manga/${slug}/chapters/${chapterId}`;
+        // Use the actual API endpoint for chapter content
+        const apiUrl = `https://sv1.otruyencdn.com/v1/api/chapter/${chapterId}`;
         
         console.log(`Fetching chapter content from: ${apiUrl}`);
         
-        // In a real app, replace this with actual API call
-        // For this static demo, we'll simulate that images are fetched
-        const chapterData = {
-            title: 'Chapter Title',
-            pages: [
-                { id: 1, url: 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Manga+Page+1' },
-                { id: 2, url: 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Manga+Page+2' },
-                { id: 3, url: 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Manga+Page+3' },
-                { id: 4, url: 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Manga+Page+4' },
-                { id: 5, url: 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Manga+Page+5' }
-            ]
-        };
+        // Fetch the chapter data
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Check if data is valid and has expected structure
+        if (!data || !data.data || !data.data.images) {
+            throw new Error('Invalid API response structure or no images found');
+        }
+        
+        // Extract page data from the API response
+        const pages = data.data.images.map((url, index) => {
+            return {
+                id: index + 1,
+                url: url
+            };
+        });
         
         // Display the manga pages
-        displayMangaPages(chapterData.pages);
+        displayMangaPages(pages);
+        
+        // Update page title with chapter information
+        if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
+            const chapter = chapters[currentChapterIndex];
+            document.title = `Chapter ${chapter.number} - ${mangaTitle.textContent}`;
+        }
         
     } catch (error) {
         console.error('Error fetching chapter content:', error);
-        throw new Error('Failed to fetch chapter content');
+        throw new Error('Failed to fetch chapter content: ' + error.message);
     }
 }
 
@@ -174,21 +216,64 @@ function displayMangaPages(pages) {
     mangaContent.innerHTML = '';
     
     if (pages && pages.length > 0) {
+        // Show chapter information at the top if available
+        if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
+            const chapter = chapters[currentChapterIndex];
+            const chapterInfoDiv = document.createElement('div');
+            chapterInfoDiv.className = 'chapter-info mb-4 p-3 bg-dark rounded';
+            chapterInfoDiv.innerHTML = `
+                <h3>Chapter ${chapter.number}</h3>
+                ${chapter.filename ? `<p class="text-muted">${chapter.filename}</p>` : ''}
+                <p class="text-info">Viewing page <span id="current-page">1</span> of ${pages.length}</p>
+            `;
+            mangaContent.appendChild(chapterInfoDiv);
+        }
+        
+        // Create container for pages
+        const pagesContainer = document.createElement('div');
+        pagesContainer.className = 'manga-pages-container';
+        mangaContent.appendChild(pagesContainer);
+        
         // Create elements for each page
-        pages.forEach(page => {
+        pages.forEach((page, index) => {
             const pageElement = document.createElement('div');
             pageElement.className = 'manga-page-container';
+            pageElement.dataset.pageNumber = index + 1;
             
-            // In a real app, these would be actual manga images
-            // For this static demo, we're using placeholders
+            // Create image element
             const img = document.createElement('img');
             img.src = page.url;
             img.alt = `Page ${page.id}`;
             img.className = 'manga-page';
             img.loading = 'lazy'; // Lazy load images for better performance
             
+            // Add error handling for images
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Image+Load+Error';
+                console.error(`Failed to load image: ${page.url}`);
+            };
+            
+            // Add page number indicator
+            const pageNumber = document.createElement('div');
+            pageNumber.className = 'page-number badge bg-secondary';
+            pageNumber.textContent = `Page ${index + 1}`;
+            
+            // Add elements to container
             pageElement.appendChild(img);
-            mangaContent.appendChild(pageElement);
+            pageElement.appendChild(pageNumber);
+            pagesContainer.appendChild(pageElement);
+            
+            // Update current page indicator when scrolling
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        document.getElementById('current-page').textContent = index + 1;
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            observer.observe(pageElement);
         });
         
         // Show the content container
@@ -196,9 +281,9 @@ function displayMangaPages(pages) {
         
         // Apply reading mode based on toggle state
         if (!readingModeToggle.checked) {
-            mangaContent.classList.add('horizontal-mode');
+            pagesContainer.classList.add('horizontal-mode');
         } else {
-            mangaContent.classList.remove('horizontal-mode');
+            pagesContainer.classList.remove('horizontal-mode');
         }
     } else {
         showEmptyState('No pages found for this chapter');
@@ -211,15 +296,35 @@ function populateChapterDropdown() {
     chapterList.innerHTML = '';
     
     if (chapters && chapters.length > 0) {
-        chapters.forEach(chapter => {
+        // Update the dropdown button text to show the currently selected chapter
+        if (currentChapterIndex !== -1) {
+            const currentChapter = chapters[currentChapterIndex];
+            document.getElementById('chapterDropdown').textContent = `Chapter ${currentChapter.number}`;
+        } else {
+            document.getElementById('chapterDropdown').textContent = 'Chapter Selection';
+        }
+        
+        // Add chapters to dropdown in reverse order (newest first)
+        // Create a copy of the array for sorting to avoid affecting the original order
+        const sortedChapters = [...chapters].reverse();
+        
+        sortedChapters.forEach(chapter => {
             const listItem = document.createElement('li');
             const link = document.createElement('a');
             link.className = 'dropdown-item';
             link.href = '#';
-            link.textContent = `Chapter ${chapter.number}${chapter.title ? ': ' + chapter.title : ''}`;
             
+            // Format chapter name with number and title if available
+            let chapterText = `Chapter ${chapter.number}`;
+            if (chapter.title && chapter.title.trim() !== '') {
+                chapterText += `: ${chapter.title}`;
+            }
+            link.textContent = chapterText;
+            
+            // Highlight the current chapter
             if (chapter.id === currentChapterId) {
                 link.classList.add('active');
+                link.innerHTML = `<i class="fas fa-bookmark me-2"></i>${chapterText}`;
             }
             
             link.addEventListener('click', (e) => {
@@ -264,18 +369,32 @@ function navigateToChapter(chapterId) {
     }
 }
 
-// Update navigation button states based on current chapter
+// Update navigation button states and text based on current chapter
 function updateNavigation() {
     if (currentChapterIndex > 0) {
         prevChapterBtn.disabled = false;
+        const prevChapter = chapters[currentChapterIndex - 1];
+        prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left me-2"></i>Chapter ${prevChapter.number}`;
     } else {
         prevChapterBtn.disabled = true;
+        prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left me-2"></i>Previous Chapter`;
     }
     
     if (currentChapterIndex < chapters.length - 1 && currentChapterIndex !== -1) {
         nextChapterBtn.disabled = false;
+        const nextChapter = chapters[currentChapterIndex + 1];
+        nextChapterBtn.innerHTML = `Chapter ${nextChapter.number}<i class="fas fa-arrow-right ms-2"></i>`;
     } else {
         nextChapterBtn.disabled = true;
+        nextChapterBtn.innerHTML = `Next Chapter<i class="fas fa-arrow-right ms-2"></i>`;
+    }
+    
+    // Update page title
+    if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
+        const chapter = chapters[currentChapterIndex];
+        document.title = `Chapter ${chapter.number} - ${mangaTitle.textContent}`;
+    } else {
+        document.title = "Manga Reader";
     }
 }
 
