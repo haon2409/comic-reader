@@ -507,6 +507,7 @@ function showErrorMessage(message) {
 
 // Show empty state when no content is available
 function showEmptyState(message = 'No manga content to display') {
+    loading.style.display = 'none';
     mangaContent.style.display = 'block';
     mangaContent.innerHTML = `
         <div class="empty-state">
