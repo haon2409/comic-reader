@@ -29,14 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const keyword = document.getElementById('search-input').value.trim();
             if (keyword) {
-                window.location.href = `/search?keyword=${encodeURIComponent(keyword)}`;
+                handleSearchResults(keyword);
             }
         });
-    }
-
-    // Handle search results if on search page
-    if (window.location.pathname === '/search') {
-        handleSearchResults();
     }
     
     // Set up event listeners
@@ -633,14 +628,15 @@ async function loadLatestChapter(slug) {
 }
 
 // Handle search results
-async function handleSearchResults() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const keyword = urlParams.get('keyword');
-    
+async function handleSearchResults(keyword) {
     if (!keyword) {
-        mangaContent.innerHTML = '<div class="alert alert-info">Please enter a search keyword.</div>';
+        mangaContent.innerHTML = '<div class="alert alert-info">Vui lòng nhập từ khóa tìm kiếm.</div>';
         return;
     }
+    
+    // Hide other elements during search
+    document.getElementById('chapter-navigation').style.display = 'none';
+    mangaTitle.textContent = `Kết quả tìm kiếm: "${keyword}"`;
     
     try {
         // Show loading spinner
