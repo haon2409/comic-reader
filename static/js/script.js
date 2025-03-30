@@ -240,8 +240,16 @@ function populateChapterDropdown() {
 // Navigate to a different chapter
 function navigateToChapter(chapterId) {
     if (chapterId !== currentChapterId) {
-        // Construct the new URL with updated chapter_id
+        // Ensure we are on the /read route
         const url = new URL(window.location.href);
+        const pathname = url.pathname;
+        
+        // If not already on /read, change the pathname
+        if (!pathname.includes('/read')) {
+            url.pathname = '/read';
+        }
+        
+        // Update the chapter_id param
         url.searchParams.set('chapter_id', chapterId);
         
         // Update the browser history and URL
@@ -287,7 +295,7 @@ function showEmptyState(message = 'No manga content to display') {
             <h3>Nothing to Display</h3>
             <p>${message}</p>
             <p>Use a URL with slug and chapter_id parameters to view manga content.</p>
-            <p>Example: ?slug=manga-title&chapter_id=12345</p>
+            <p>Example: /read?slug=manga-title&chapter_id=12345</p>
         </div>
     `;
 }
