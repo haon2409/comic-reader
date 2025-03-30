@@ -80,15 +80,68 @@ footer {
     border-left: 4px solid var(--bs-info);
 }
 
-/* Chapter navigation */
+/* Chapter navigation - Repositioned based on screen size */
 #chapter-navigation {
-    position: sticky;
-    top: 10px;
-    z-index: 100;
+    position: fixed;
+    z-index: 1000;
     background-color: rgba(33, 37, 41, 0.9);
     padding: 10px;
     border-radius: 5px;
     backdrop-filter: blur(5px);
+}
+
+/* For large screens/landscape mode - Vertical buttons on bottom right */
+@media (min-width: 769px) {
+    #chapter-navigation {
+        right: 20px;
+        bottom: 20px;
+        flex-direction: column;
+        gap: 10px;
+        width: auto;
+    }
+    
+    #chapter-navigation button {
+        width: 100%;
+    }
+    
+    #chapter-navigation .dropdown {
+        width: 100%;
+    }
+}
+
+/* For small screens/portrait mode - Horizontal buttons at the bottom */
+@media (max-width: 768px) {
+    #chapter-navigation {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        border-radius: 0;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+    
+    #chapter-navigation button {
+        flex: 1;
+        font-size: 0.9rem;
+        padding: 0.375rem 0.5rem;
+    }
+    
+    #chapter-navigation .dropdown {
+        flex: 1;
+        margin: 0 5px;
+    }
+    
+    .manga-page {
+        max-width: 100%;
+    }
+    
+    /* Add bottom padding to prevent content being hidden behind navigation */
+    body {
+        padding-bottom: 60px;
+    }
 }
 
 /* Dropdown menu for chapters */
@@ -101,23 +154,6 @@ footer {
 #chapter-list .active {
     background-color: var(--bs-dark);
     color: var(--bs-info);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    #chapter-navigation {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    #chapter-navigation button,
-    #chapter-navigation .dropdown {
-        width: 100%;
-    }
-    
-    .manga-page {
-        max-width: 100%;
-    }
 }
 
 /* Empty state styling */
