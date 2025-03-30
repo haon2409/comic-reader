@@ -18,7 +18,26 @@ const toggleNavPositionBtn = document.getElementById('toggle-nav-position');
 const chapterNavigation = document.getElementById('chapter-navigation');
 
 // Initialize the application when the DOM is fully loaded
+// Get base path for the application
+function getBasePath() {
+    const path = window.location.pathname;
+    const segments = path.split('/').filter(segment => segment.length > 0);
+    
+    // Check if we're on GitHub Pages with /comic-reader/
+    if (segments[0] === 'comic-reader') {
+        return '/comic-reader/';
+    }
+    
+    return '/';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Set correct base path for navbar-brand
+    const navbarBrand = document.querySelector('.navbar-brand');
+    if (navbarBrand) {
+        navbarBrand.href = getBasePath();
+    }
+    
     // Parse URL parameters
     parseUrlParameters();
     
