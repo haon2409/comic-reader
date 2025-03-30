@@ -262,18 +262,7 @@ function displayMangaPages(pages) {
     mangaContent.innerHTML = '';
     
     if (pages && pages.length > 0) {
-        // Show chapter information at the top if available
-        if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
-            const chapter = chapters[currentChapterIndex];
-            const chapterInfoDiv = document.createElement('div');
-            chapterInfoDiv.className = 'chapter-info mb-4 p-3 bg-dark rounded';
-            chapterInfoDiv.innerHTML = `
-                <h3>Chapter ${chapter.number}</h3>
-                ${chapter.filename ? `<p class="text-muted">${chapter.filename}</p>` : ''}
-                <p class="text-info">Viewing page <span id="current-page">1</span> of ${pages.length}</p>
-            `;
-            mangaContent.appendChild(chapterInfoDiv);
-        }
+        // Removed chapter information display from top of page
         
         // Create container for pages
         const pagesContainer = document.createElement('div');
@@ -310,16 +299,7 @@ function displayMangaPages(pages) {
             pageElement.appendChild(pageNumber);
             pagesContainer.appendChild(pageElement);
             
-            // Update current page indicator when scrolling
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        document.getElementById('current-page').textContent = index + 1;
-                    }
-                });
-            }, { threshold: 0.5 });
-            
-            observer.observe(pageElement);
+            // Removed page number update - not needed anymore
         });
         
         // Show the content container
