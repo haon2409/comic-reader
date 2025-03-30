@@ -3,6 +3,8 @@ let currentSlug = '';
 let currentChapterId = '';
 let chapters = [];
 let currentChapterIndex = -1;
+let navPositions = ['position-bottom-right', 'position-top-right', 'position-top-left', 'position-bottom-left'];
+let currentNavPositionIndex = 0;
 
 // DOM elements
 const mangaTitle = document.getElementById('manga-title');
@@ -12,6 +14,8 @@ const errorMessage = document.getElementById('error-message');
 const prevChapterBtn = document.getElementById('prev-chapter');
 const nextChapterBtn = document.getElementById('next-chapter');
 const chapterList = document.getElementById('chapter-list');
+const toggleNavPositionBtn = document.getElementById('toggle-nav-position');
+const chapterNavigation = document.getElementById('chapter-navigation');
 
 // Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -70,6 +74,15 @@ function setupEventListeners() {
             console.log("No next chapter available");
         }
     });
+    
+    // Toggle navigation position button
+    toggleNavPositionBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleNavPosition();
+    });
+    
+    // Load nav position from localStorage
+    loadNavPositionFromStorage();
     
     // Reading mode toggle removed
     
@@ -442,4 +455,56 @@ function showEmptyState(message = 'No manga content to display') {
             <p>Example: /read?slug=one-piece&chapter_id=123456</p>
         </div>
     `;
+}
+
+// Toggle the navigation bar position
+function toggleNavPosition() {
+    // Remove the current position class
+    chapterNavigation.classList.remove(...navPositions);
+    
+    // Move to the next position
+    currentNavPositionIndex = (currentNavPositionIndex + 1) % navPositions.length;
+    const newPosition = navPositions[currentNavPositionIndex];
+    
+    // Apply the new position
+    chapterNavigation.classList.add(newPosition);
+    
+    // Save to localStorage
+    localStorage.setItem('navPosition', currentNavPositionIndex.toString());
+    
+    // Update the icon/tooltip to show current position
+    updateNavPositionIcon();
+}
+
+// Load navigation position from localStorage
+function loadNavPositionFromStorage() {
+    const savedPosition = localStorage.getItem('navPosition');
+    
+    if (savedPosition !== null) {
+        currentNavPositionIndex = parseInt(savedPosition, 10);
+        
+        // Make sure it's a valid index
+        if (isNaN(currentNavPositionIndex) || currentNavPositionIndex < 0 || currentNavPositionIndex >= navPositions.length) {
+            currentNavPositionIndex = 0;
+        }
+        
+        // Apply the saved position
+        chapterNavigation.classList.remove(...navPositions);
+        chapterNavigation.classList.add(navPositions[currentNavPositionIndex]);
+    } else {
+        // Default position (bottom right)
+        chapterNavigation.classList.add(navPositions[0]);
+    }
+    
+    // Update icon for current position
+    updateNavPositionIcon();
+}
+
+// Update the toggle button icon/tooltip to reflect current position
+function updateNavPositionIcon() {
+    const positions = ['Bottom Right', 'Top Right', 'Top Left', 'Bottom Left'];
+    const currentPosition = positions[currentNavPositionIndex];
+    
+    // Update tooltip
+    toggleNavPositionBtn.title = `Navigation: ${currentPosition} (Click to change)`;
 }

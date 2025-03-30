@@ -82,6 +82,42 @@ body {
     padding: 10px;
     border-radius: 5px;
     backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+/* Toggle nav position button styling */
+#toggle-nav-position {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    line-height: 36px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Custom positions */
+#chapter-navigation.position-top-right {
+    top: 20px;
+    right: 20px;
+    bottom: auto;
+    left: auto;
+}
+
+#chapter-navigation.position-top-left {
+    top: 20px;
+    left: 20px;
+    bottom: auto;
+    right: auto;
+}
+
+#chapter-navigation.position-bottom-left {
+    bottom: 20px;
+    left: 20px;
+    top: auto;
+    right: auto;
 }
 
 /* For large screens/landscape mode - Vertical buttons on bottom right */
