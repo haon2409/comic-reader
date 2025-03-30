@@ -634,6 +634,10 @@ async function loadLatestChapter(slug) {
 
 // Handle search results
 async function handleSearchResults() {
+    // Hide chapter navigation
+    const chapterNav = document.getElementById('chapter-navigation');
+    if (chapterNav) chapterNav.style.display = 'none';
+    
     const urlParams = new URLSearchParams(window.location.search);
     const keyword = urlParams.get('keyword');
     
@@ -643,8 +647,7 @@ async function handleSearchResults() {
     }
     
     try {
-        // Show loading spinner
-        mangaContent.innerHTML = '<div class="text-center my-5"><div class="spinner-border"></div></div>';
+        mangaContent.innerHTML = '<div class="text-center my-3"><div class="spinner-border"></div></div>';
         
         const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`, {
             headers: {
