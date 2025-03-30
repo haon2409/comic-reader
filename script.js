@@ -782,5 +782,29 @@ async function handleSearchResults(keyword) {
 }
 
 function handleMangaClick(slug) {
-    window.location.href = `./?slug=${slug}`;
+    // Fetch manga info first to get chapters
+    fetch(`https://otruyenapi.com/v1/api/truyen-tranh/${encodeURIComponent(slug)}`, {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data?.data?.item?.chapters?.[0]?.server_data) {
+            // Get first chapter ID
+            const firstChapter = data.data.item.chapters[0].server_data[0];
+            const chapterApiUrl = firstChapter.chapter_api_data;
+            const chapterId = chapterApiUrl.split('/').pop();
+            
+            // Navigate to manga with first chapter
+            window.location.href = `./?slug=${slug}&chapter_id=${chapterId}`;
+        } else {
+            window.location.href = `./?slug=${slug}`;
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching manga info:', error);
+        window.location.href = `./?slug=${slug}`;
+    });
 }
