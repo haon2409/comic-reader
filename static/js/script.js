@@ -465,10 +465,10 @@ function showEmptyState(message = 'No manga content to display') {
     mangaContent.innerHTML = `
         <div class="empty-state">
             <i class="fas fa-book"></i>
-            <h3>Nothing to Display</h3>
+            <h3>Welcome to Manga Reader</h3>
             <p>${message}</p>
-            <p>Use a URL with slug and chapter_id parameters to view manga content.</p>
-            <p>Example: /read?slug=manga-title&chapter_id=12345</p>
+            <p>Enter a valid manga URL to begin reading.</p>
+            <p>Example: /read?slug=one-piece&chapter_id=123456</p>
         </div>
     `;
 }

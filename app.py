@@ -12,9 +12,9 @@ CORS(app)
 @app.route('/')
 def index():
     """
-    Redirect to a specific manga with chapter for testing.
+    Redirect to the manga reader page.
     """
-    return redirect('/read?slug=bac-si-quai-di&chapter_id=658264dae120ddf2198d0cbb')
+    return redirect('/read')
 
 @app.route('/read')
 def read():
