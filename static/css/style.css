@@ -78,11 +78,13 @@ body {
 #chapter-navigation {
     position: fixed;
     z-index: 1000;
-    background-color: rgba(33, 37, 41, 0.9);
-    padding: 10px;
-    border-radius: 5px;
-    backdrop-filter: blur(5px);
+    background-color: rgba(33, 37, 41, 0.85);
+    padding: 8px;
+    border-radius: 50px;
+    backdrop-filter: blur(8px);
     transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Toggle nav position button styling */
@@ -96,7 +98,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
 }
 
 /* Default styles - these will apply if nav-vertical or nav-horizontal classes aren't present */
@@ -108,16 +110,23 @@ body {
     left: auto;
     top: auto;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
     width: auto;
+    border-radius: 20px;
 }
 
 #chapter-navigation.nav-vertical button {
     width: 100%;
+    border-radius: 15px;
+    margin: 2px 0;
 }
 
 #chapter-navigation.nav-vertical .dropdown {
     width: 100%;
+}
+
+#chapter-navigation.nav-vertical #toggle-nav-position {
+    align-self: center;
 }
 
 /* Horizontal navigation layout (for mobile/portrait) */
@@ -127,22 +136,25 @@ body {
     bottom: 0;
     top: auto;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     border-radius: 0;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    gap: 8px;
+    padding: 8px 16px;
 }
 
 #chapter-navigation.nav-horizontal button {
-    flex: 1;
-    font-size: 0.9rem;
-    padding: 0.375rem 0.5rem;
+    flex: 0 0 auto;
+    border-radius: 15px;
+    padding: 4px 12px;
 }
 
 #chapter-navigation.nav-horizontal .dropdown {
     flex: 1;
-    margin: 0 5px;
+    max-width: 140px;
 }
 
 #chapter-navigation.nav-horizontal ~ #manga-content {
@@ -155,16 +167,23 @@ body {
         right: 20px;
         bottom: 20px;
         flex-direction: column;
-        gap: 10px;
+        gap: 5px;
         width: auto;
+        border-radius: 20px;
     }
     
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) button {
         width: 100%;
+        border-radius: 15px;
+        margin: 2px 0;
     }
     
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) .dropdown {
         width: 100%;
+    }
+    
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) #toggle-nav-position {
+        align-self: center;
     }
 }
 
@@ -174,22 +193,25 @@ body {
         right: 0;
         bottom: 0;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
+        align-items: center;
         width: 100%;
         border-radius: 0;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        gap: 8px;
+        padding: 8px 16px;
     }
     
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) button {
-        flex: 1;
-        font-size: 0.9rem;
-        padding: 0.375rem 0.5rem;
+        flex: 0 0 auto;
+        border-radius: 15px;
+        padding: 4px 12px;
     }
     
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) .dropdown {
         flex: 1;
-        margin: 0 5px;
+        max-width: 140px;
     }
     
     .manga-page {
@@ -220,11 +242,27 @@ body {
 #chapter-list .active {
     background-color: var(--bs-dark);
     color: var(--bs-info);
+    border-left: 3px solid var(--bs-info);
 }
 
 /* Read chapter in dropdown */
 #chapter-list .read {
     opacity: 0.6;
+    color: var(--bs-secondary);
+}
+
+/* Button styles */
+#chapter-navigation button {
+    transition: all 0.2s ease;
+}
+
+#chapter-navigation button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#chapter-navigation button:active:not(:disabled) {
+    transform: scale(0.95);
 }
 
 /* Empty state styling */
