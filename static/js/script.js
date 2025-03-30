@@ -57,25 +57,45 @@ function setupEventListeners() {
     // Previous chapter button
     prevChapterBtn.addEventListener('click', function() {
         if (currentChapterIndex > 0) {
-            navigateToChapter(chapters[currentChapterIndex - 1].id);
+            const prevChapterId = chapters[currentChapterIndex - 1].id;
+            console.log("Navigating to previous chapter: " + prevChapterId);
+            navigateToChapter(prevChapterId);
         }
     });
     
     // Next chapter button
     nextChapterBtn.addEventListener('click', function() {
         if (currentChapterIndex < chapters.length - 1) {
-            navigateToChapter(chapters[currentChapterIndex + 1].id);
+            const nextChapterId = chapters[currentChapterIndex + 1].id;
+            console.log("Navigating to next chapter: " + nextChapterId);
+            navigateToChapter(nextChapterId);
         }
     });
     
     // Reading mode toggle
     readingModeToggle.addEventListener('change', function() {
-        if (this.checked) {
-            // Vertical reading mode
-            mangaContent.classList.remove('horizontal-mode');
-        } else {
-            // Horizontal reading mode
-            mangaContent.classList.add('horizontal-mode');
+        const pagesContainer = document.querySelector('.manga-pages-container');
+        if (pagesContainer) {
+            if (this.checked) {
+                // Vertical reading mode
+                pagesContainer.classList.remove('horizontal-mode');
+            } else {
+                // Horizontal reading mode
+                pagesContainer.classList.add('horizontal-mode');
+            }
+        }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        // Left arrow key for previous chapter
+        if (e.key === 'ArrowLeft' && !prevChapterBtn.disabled) {
+            prevChapterBtn.click();
+        }
+        
+        // Right arrow key for next chapter
+        if (e.key === 'ArrowRight' && !nextChapterBtn.disabled) {
+            nextChapterBtn.click();
         }
     });
 }
@@ -109,8 +129,8 @@ async function loadMangaContent(slug, chapterId) {
 // Fetch manga information (title, chapters list, etc.)
 async function fetchMangaInfo(slug) {
     try {
-        // Use the actual API endpoint for manga information
-        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${slug}`;
+        // Use proxy API endpoint to avoid CORS issues
+        const apiUrl = `/api/proxy/manga/${slug}`;
         
         console.log(`Fetching manga info from: ${apiUrl}`);
         
@@ -155,6 +175,7 @@ async function fetchMangaInfo(slug) {
         
         // Find the current chapter index
         currentChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId);
+        console.log(`Current chapter index: ${currentChapterIndex} for chapter ID: ${currentChapterId}`);
         
         // Populate chapter dropdown
         populateChapterDropdown();
@@ -168,8 +189,8 @@ async function fetchMangaInfo(slug) {
 // Fetch chapter content (pages/images)
 async function fetchChapterContent(slug, chapterId) {
     try {
-        // Use the actual API endpoint for chapter content
-        const apiUrl = `https://sv1.otruyencdn.com/v1/api/chapter/${chapterId}`;
+        // Use our proxy API endpoint to avoid CORS issues
+        const apiUrl = `/api/proxy/chapter/${chapterId}`;
         
         console.log(`Fetching chapter content from: ${apiUrl}`);
         
