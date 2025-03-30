@@ -132,6 +132,8 @@ function setupEventListeners() {
 // Load manga content from API
 async function loadMangaContent(slug, chapterId) {
     try {
+        // Show loading indicator
+        loading.style.display = 'block';
         mangaContent.style.display = 'none';
         errorMessage.style.display = 'none';
         
