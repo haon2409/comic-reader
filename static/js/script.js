@@ -125,8 +125,10 @@ async function loadMangaContent(slug, chapterId) {
         // Fetch manga information first
         await fetchMangaInfo(slug);
         
-        // Then fetch chapter content
-        await fetchChapterContent(slug, chapterId);
+        // Comment chức năng tải nội dung chapter để tập trung vào điều hướng trước
+        // await fetchChapterContent(slug, chapterId);
+        // Thay vào đó, hiển thị thông tin chapter
+        showChapterInfo(chapterId);
         
         // Update navigation buttons
         updateNavigation();
@@ -138,6 +140,35 @@ async function loadMangaContent(slug, chapterId) {
         // Hide loading indicator
         loading.style.display = 'none';
     }
+}
+
+// Hiển thị thông tin chapter (thay vì tải nội dung thực)
+function showChapterInfo(chapterId) {
+    // Clear previous content
+    mangaContent.innerHTML = '';
+    
+    // Tạo container hiển thị thông tin chapter
+    const chapterInfoDiv = document.createElement('div');
+    chapterInfoDiv.className = 'chapter-info mb-4 p-3 bg-dark rounded text-center';
+    
+    // Tìm thông tin chapter nếu có
+    let chapterInfo = "Chapter ID: " + chapterId;
+    if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
+        const chapter = chapters[currentChapterIndex];
+        chapterInfo = `
+            <h2>Chapter ${chapter.number}</h2>
+            ${chapter.title ? `<p class="text-muted">${chapter.title}</p>` : ''}
+            <p class="text-info">ID: ${chapter.id}</p>
+            ${chapter.filename ? `<p class="text-muted">Filename: ${chapter.filename}</p>` : ''}
+            <p class="mt-4">Chức năng tải nội dung đã tạm thời bị tắt để tập trung vào cải thiện điều hướng</p>
+        `;
+    }
+    
+    chapterInfoDiv.innerHTML = chapterInfo;
+    mangaContent.appendChild(chapterInfoDiv);
+    
+    // Show the content container
+    mangaContent.style.display = 'block';
 }
 
 // Fetch manga information (title, chapters list, etc.)
