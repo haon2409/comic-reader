@@ -190,12 +190,12 @@ async function fetchMangaInfo(slug) {
         }
         
         // Extract chapters from the API response
-        const chaptersData = data.data.item.chapters[0].server_data || [];
+        const chaptersData = data.data.item.chapters || [];
         
         // Transform the chapter data into our format
         chapters = chaptersData.map(chapter => {
             // Extract chapter_id from chapter_api_data
-            const chapterApiUrl = chapter.chapter_api_data;
+            const chapterApiUrl = chapter.server_data[0].chapter_api_data;
             const chapterId = chapterApiUrl.split('/').pop();
             
             return {
