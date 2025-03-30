@@ -634,9 +634,11 @@ async function loadLatestChapter(slug) {
 
 // Handle search results
 async function handleSearchResults() {
-    // Hide chapter navigation
+    // Hide chapter navigation and loading message
     const chapterNav = document.getElementById('chapter-navigation');
+    const loadingMsg = document.getElementById('loading');
     if (chapterNav) chapterNav.style.display = 'none';
+    if (loadingMsg) loadingMsg.style.display = 'none';
     
     const urlParams = new URLSearchParams(window.location.search);
     const keyword = urlParams.get('keyword');
