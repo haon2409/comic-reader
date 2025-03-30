@@ -741,12 +741,14 @@ async function handleSearchResults(keyword) {
                     ${resultsHtml}
                 </div>
             `;
+            loading.style.display = 'none';
         } else {
             mangaContent.innerHTML = `
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
                     No results found for "${keyword}"
                 </div>`;
+            loading.style.display = 'none';
         }
     } catch (error) {
         console.error('Search error:', error);
