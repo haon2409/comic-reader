@@ -208,10 +208,23 @@ body {
     overflow-y: auto;
 }
 
+/* Dropdown menu positioning */
+.dropdown-menu-up {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.125rem !important;
+}
+
 /* Active chapter in dropdown */
 #chapter-list .active {
     background-color: var(--bs-dark);
     color: var(--bs-info);
+}
+
+/* Read chapter in dropdown */
+#chapter-list .read {
+    opacity: 0.6;
 }
 
 /* Empty state styling */

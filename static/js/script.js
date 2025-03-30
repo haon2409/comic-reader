@@ -4,6 +4,7 @@ let currentChapterId = '';
 let chapters = [];
 let currentChapterIndex = -1;
 let isVerticalNav = true; // Default to vertical navigation (for desktop/landscape)
+let readChapters = []; // Array to store IDs of chapters that have been read
 
 // DOM elements
 const mangaTitle = document.getElementById('manga-title');
@@ -24,9 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event listeners
     setupEventListeners();
     
+    // Load read history from localStorage
+    loadReadHistory();
+    
     // Load manga content if parameters are present
     if (currentSlug && currentChapterId) {
         loadMangaContent(currentSlug, currentChapterId);
+    } else if (currentSlug) {
+        // If we have slug but no chapter_id, fetch manga info to get the latest chapter
+        loadLatestChapter(currentSlug);
     } else {
         showEmptyState();
     }
@@ -355,6 +362,11 @@ function populateChapterDropdown() {
             }
             link.textContent = chapterText;
             
+            // Mark chapter as read if in read history
+            if (readChapters.includes(chapter.id)) {
+                link.classList.add('read');
+            }
+            
             // Highlight the current chapter
             if (chapter.id === currentChapterId) {
                 link.classList.add('active');
@@ -369,6 +381,10 @@ function populateChapterDropdown() {
             listItem.appendChild(link);
             chapterList.appendChild(listItem);
         });
+        
+        // Set dropdown position based on current navigation position
+        updateDropdownPosition();
+        
     } else {
         const listItem = document.createElement('li');
         listItem.textContent = 'No chapters available';
@@ -410,21 +426,26 @@ function navigateToChapter(chapterId) {
 function updateNavigation() {
     if (currentChapterIndex > 0) {
         prevChapterBtn.disabled = false;
-        const prevChapter = chapters[currentChapterIndex - 1];
-        prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left me-2"></i>Chapter ${prevChapter.number}`;
+        prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left"></i>`;
+        prevChapterBtn.title = `Previous Chapter (${chapters[currentChapterIndex - 1].number})`;
     } else {
         prevChapterBtn.disabled = true;
-        prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left me-2"></i>Previous Chapter`;
+        prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left"></i>`;
+        prevChapterBtn.title = `No Previous Chapter`;
     }
     
     if (currentChapterIndex < chapters.length - 1 && currentChapterIndex !== -1) {
         nextChapterBtn.disabled = false;
-        const nextChapter = chapters[currentChapterIndex + 1];
-        nextChapterBtn.innerHTML = `Chapter ${nextChapter.number}<i class="fas fa-arrow-right ms-2"></i>`;
+        nextChapterBtn.innerHTML = `<i class="fas fa-arrow-right"></i>`;
+        nextChapterBtn.title = `Next Chapter (${chapters[currentChapterIndex + 1].number})`;
     } else {
         nextChapterBtn.disabled = true;
-        nextChapterBtn.innerHTML = `Next Chapter<i class="fas fa-arrow-right ms-2"></i>`;
+        nextChapterBtn.innerHTML = `<i class="fas fa-arrow-right"></i>`;
+        nextChapterBtn.title = `No Next Chapter`;
     }
+    
+    // Save current chapter ID to read history
+    saveReadChapter(currentChapterId);
     
     // Update page title
     if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
@@ -469,6 +490,9 @@ function toggleNavPosition() {
     
     // Update the icon/tooltip to show current position
     updateNavPositionIcon();
+    
+    // Update dropdown menu position
+    updateDropdownPosition();
 }
 
 // Load navigation position from localStorage
@@ -484,6 +508,9 @@ function loadNavPositionFromStorage() {
     
     // Update icon for current position
     updateNavPositionIcon();
+    
+    // Update dropdown menu position
+    updateDropdownPosition();
 }
 
 // Apply the appropriate styles based on navigation mode
@@ -509,5 +536,88 @@ function updateNavPositionIcon() {
     } else {
         toggleNavPositionBtn.title = 'Switch to vertical layout';
         toggleNavPositionBtn.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+    }
+}
+
+// Update dropdown position based on navigation bar position
+function updateDropdownPosition() {
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    if (!dropdownMenu) return;
+    
+    // Remove any previously set positions
+    dropdownMenu.classList.remove('dropdown-menu-end', 'dropdown-menu-start', 'dropdown-menu-up');
+    
+    if (isVerticalNav) {
+        // If nav is vertical (on right side), show dropdown to the left
+        dropdownMenu.classList.add('dropdown-menu-start');
+    } else {
+        // If nav is horizontal (at bottom), show dropdown above
+        dropdownMenu.classList.add('dropdown-menu-up');
+    }
+}
+
+// Load the read history from localStorage
+function loadReadHistory() {
+    const history = localStorage.getItem('readChapters');
+    if (history) {
+        try {
+            readChapters = JSON.parse(history);
+        } catch (error) {
+            console.error('Error parsing read history:', error);
+            readChapters = [];
+        }
+    }
+}
+
+// Save a chapter to read history
+function saveReadChapter(chapterId) {
+    if (!chapterId) return;
+    
+    // Add the chapter ID to read history if not already present
+    if (!readChapters.includes(chapterId)) {
+        readChapters.push(chapterId);
+        // Save updated history to localStorage
+        localStorage.setItem('readChapters', JSON.stringify(readChapters));
+    }
+}
+
+// Load the latest chapter when no chapter_id is specified
+async function loadLatestChapter(slug) {
+    try {
+        // Show loading indicator
+        loading.style.display = 'block';
+        mangaContent.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        // Fetch manga info to get the list of chapters
+        await fetchMangaInfo(slug);
+        
+        // If chapters were loaded successfully
+        if (chapters && chapters.length > 0) {
+            // Use the latest chapter
+            const latestChapter = chapters[chapters.length - 1];
+            
+            // Update the current chapter ID
+            currentChapterId = latestChapter.id;
+            
+            // Update URL with the chapter ID
+            const url = new URL(window.location.href);
+            url.searchParams.set('chapter_id', currentChapterId);
+            window.history.replaceState({}, '', url.toString());
+            
+            // Load the chapter content
+            await fetchChapterContent(slug, currentChapterId);
+            
+            // Update navigation buttons
+            updateNavigation();
+        } else {
+            throw new Error('No chapters found for this manga');
+        }
+    } catch (error) {
+        console.error('Error loading latest chapter:', error);
+        showErrorMessage(error.message || 'Unable to load manga content. Please try again later.');
+    } finally {
+        // Hide loading indicator
+        loading.style.display = 'none';
     }
 }
