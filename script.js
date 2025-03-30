@@ -634,38 +634,57 @@ async function handleSearchResults() {
     const urlParams = new URLSearchParams(window.location.search);
     const keyword = urlParams.get('keyword');
     
-    if (!keyword) return;
+    if (!keyword) {
+        mangaContent.innerHTML = '<div class="alert alert-info">Please enter a search keyword.</div>';
+        return;
+    }
     
     try {
+        // Show loading spinner
         mangaContent.innerHTML = '<div class="text-center my-5"><div class="spinner-border"></div></div>';
         
-        const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`);
+        const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        if (data.status === 'success' && data.data.items) {
+        if (data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
             const resultsHtml = data.data.items.map(manga => {
-                const thumbnail = `${data.data.APP_DOMAIN_CDN_IMAGE}/uploads/comics/${manga.thumb_url}`;
-                const date = new Date(manga.updatedAt).toLocaleDateString();
+                const thumbnail = manga.thumb_url ? 
+                    `${data.data.APP_DOMAIN_CDN_IMAGE}/uploads/comics/${manga.thumb_url}` :
+                    'https://via.placeholder.com/200x300?text=No+Image';
+                const date = manga.updatedAt ? new Date(manga.updatedAt).toLocaleDateString() : 'N/A';
+                const authors = Array.isArray(manga.author) ? manga.author.join(', ') : 'Unknown';
+                const chapterCount = manga.chapters && Array.isArray(manga.chapters) ? manga.chapters.length : 0;
                 
                 return `
                     <div class="card mb-3 search-result" style="max-width: 800px; margin: auto;">
                         <div class="row g-0">
                             <div class="col-md-3">
                                 <img src="${thumbnail}" class="img-fluid rounded-start" alt="${manga.name}" 
-                                    style="height: 200px; object-fit: cover;">
+                                    style="height: 200px; object-fit: cover;"
+                                    onerror="this.src='https://via.placeholder.com/200x300?text=Error+Loading+Image'">
                             </div>
                             <div class="col-md-9">
                                 <div class="card-body">
                                     <h5 class="card-title">
-                                        <a href="/?slug=${manga.slug}" class="text-decoration-none">
+                                        <a href="/?slug=${manga.slug}" class="text-decoration-none text-info">
                                             ${manga.name}
                                         </a>
                                     </h5>
                                     <p class="card-text">
-                                        <small>Author: ${manga.author.join(', ')}</small><br>
-                                        <small>Status: ${manga.status}</small><br>
-                                        <small>Chapters: ${manga.chapters.length}</small><br>
-                                        <small>Updated: ${date}</small>
+                                        <small class="text-muted">Author: ${authors}</small><br>
+                                        <small class="text-muted">Status: ${manga.status || 'Unknown'}</small><br>
+                                        <small class="text-muted">Chapters: ${chapterCount}</small><br>
+                                        <small class="text-muted">Updated: ${date}</small>
                                     </p>
                                 </div>
                             </div>
@@ -675,15 +694,25 @@ async function handleSearchResults() {
             }).join('');
             
             mangaContent.innerHTML = `
-                <h2 class="mb-4">Search Results for: ${keyword}</h2>
-                ${resultsHtml}
+                <div class="container">
+                    <h2 class="mb-4">Search Results for: "${keyword}"</h2>
+                    ${resultsHtml}
+                </div>
             `;
         } else {
-            mangaContent.innerHTML = '<div class="alert alert-info">No results found.</div>';
+            mangaContent.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No results found for "${keyword}"
+                </div>`;
         }
     } catch (error) {
         console.error('Search error:', error);
-        mangaContent.innerHTML = '<div class="alert alert-danger">Error searching manga. Please try again.</div>';
+        mangaContent.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error searching manga. Please try again later.
+            </div>`;
     }
 }
 
