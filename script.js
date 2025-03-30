@@ -190,21 +190,27 @@ async function fetchMangaInfo(slug) {
         }
         
         // Extract chapters from the API response
-        const chaptersData = data.data.item.chapters[0].server_data || [];
+        const chaptersData = data.data.item.chapters || [];
         
         // Transform the chapter data into our format
         chapters = chaptersData.map(chapter => {
-            // Extract chapter_id from chapter_api_data
-            const chapterApiUrl = chapter.chapter_api_data;
-            const chapterId = chapterApiUrl.split('/').pop();
-            
-            return {
-                id: chapterId,
-                number: parseInt(chapter.chapter_name) || 0,
-                title: chapter.chapter_title || '',
-                filename: chapter.filename || ''
-            };
-        });
+            try {
+                // Extract chapter_id from chapter_api_data if server_data exists
+                const chapterId = chapter.server_data && chapter.server_data[0] ? 
+                    chapter.server_data[0].chapter_api_data.split('/').pop() :
+                    chapter._id;
+                
+                return {
+                    id: chapterId,
+                    number: parseInt(chapter.chapter_name) || 0,
+                    title: chapter.chapter_title || '',
+                    filename: chapter.filename || ''
+                };
+            } catch (err) {
+                console.error('Error processing chapter:', err);
+                return null;
+            }
+        }).filter(chapter => chapter !== null);
         
         // Sort chapters in ascending order (chapter 1, 2, 3...)
         chapters.sort((a, b) => a.number - b.number);
@@ -634,6 +640,12 @@ async function loadLatestChapter(slug) {
 
 // Handle search results
 async function handleSearchResults() {
+    // Hide chapter navigation and loading message
+    const chapterNav = document.getElementById('chapter-navigation');
+    const loadingMsg = document.getElementById('loading');
+    if (chapterNav) chapterNav.style.display = 'none';
+    if (loadingMsg) loadingMsg.style.display = 'none';
+    
     const urlParams = new URLSearchParams(window.location.search);
     const keyword = urlParams.get('keyword');
     
@@ -643,7 +655,6 @@ async function handleSearchResults() {
     }
     
     try {
-        // Show only spinner without text
         mangaContent.innerHTML = '<div class="text-center my-3"><div class="spinner-border"></div></div>';
         
         const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`, {
