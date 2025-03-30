@@ -3,8 +3,7 @@ let currentSlug = '';
 let currentChapterId = '';
 let chapters = [];
 let currentChapterIndex = -1;
-let navPositions = ['position-bottom-right', 'position-top-right', 'position-top-left', 'position-bottom-left'];
-let currentNavPositionIndex = 0;
+let isVerticalNav = true; // Default to vertical navigation (for desktop/landscape)
 
 // DOM elements
 const mangaTitle = document.getElementById('manga-title');
@@ -457,20 +456,16 @@ function showEmptyState(message = 'No manga content to display') {
     `;
 }
 
-// Toggle the navigation bar position
+// Toggle the navigation bar layout between vertical (desktop) and horizontal (mobile)
 function toggleNavPosition() {
-    // Remove the current position class
-    chapterNavigation.classList.remove(...navPositions);
+    // Toggle the navigation layout state
+    isVerticalNav = !isVerticalNav;
     
-    // Move to the next position
-    currentNavPositionIndex = (currentNavPositionIndex + 1) % navPositions.length;
-    const newPosition = navPositions[currentNavPositionIndex];
-    
-    // Apply the new position
-    chapterNavigation.classList.add(newPosition);
+    // Apply the appropriate classes based on current state
+    applyNavPositionStyles();
     
     // Save to localStorage
-    localStorage.setItem('navPosition', currentNavPositionIndex.toString());
+    localStorage.setItem('isVerticalNav', isVerticalNav.toString());
     
     // Update the icon/tooltip to show current position
     updateNavPositionIcon();
@@ -478,33 +473,41 @@ function toggleNavPosition() {
 
 // Load navigation position from localStorage
 function loadNavPositionFromStorage() {
-    const savedPosition = localStorage.getItem('navPosition');
+    const savedPosition = localStorage.getItem('isVerticalNav');
     
     if (savedPosition !== null) {
-        currentNavPositionIndex = parseInt(savedPosition, 10);
-        
-        // Make sure it's a valid index
-        if (isNaN(currentNavPositionIndex) || currentNavPositionIndex < 0 || currentNavPositionIndex >= navPositions.length) {
-            currentNavPositionIndex = 0;
-        }
-        
-        // Apply the saved position
-        chapterNavigation.classList.remove(...navPositions);
-        chapterNavigation.classList.add(navPositions[currentNavPositionIndex]);
-    } else {
-        // Default position (bottom right)
-        chapterNavigation.classList.add(navPositions[0]);
+        isVerticalNav = savedPosition === 'true';
     }
+    
+    // Apply the saved position styles
+    applyNavPositionStyles();
     
     // Update icon for current position
     updateNavPositionIcon();
 }
 
+// Apply the appropriate styles based on navigation mode
+function applyNavPositionStyles() {
+    // Remove responsive classes that are controlled by media queries
+    chapterNavigation.classList.remove('nav-vertical', 'nav-horizontal');
+    
+    if (isVerticalNav) {
+        // Force vertical layout regardless of screen size
+        chapterNavigation.classList.add('nav-vertical');
+    } else {
+        // Force horizontal layout regardless of screen size
+        chapterNavigation.classList.add('nav-horizontal');
+    }
+}
+
 // Update the toggle button icon/tooltip to reflect current position
 function updateNavPositionIcon() {
-    const positions = ['Bottom Right', 'Top Right', 'Top Left', 'Bottom Left'];
-    const currentPosition = positions[currentNavPositionIndex];
-    
     // Update tooltip
-    toggleNavPositionBtn.title = `Navigation: ${currentPosition} (Click to change)`;
+    if (isVerticalNav) {
+        toggleNavPositionBtn.title = 'Switch to horizontal layout';
+        toggleNavPositionBtn.innerHTML = '<i class="fas fa-grip-horizontal"></i>';
+    } else {
+        toggleNavPositionBtn.title = 'Switch to vertical layout';
+        toggleNavPositionBtn.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+    }
 }

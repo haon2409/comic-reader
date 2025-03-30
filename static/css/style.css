@@ -88,41 +88,70 @@ body {
 /* Toggle nav position button styling */
 #toggle-nav-position {
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     padding: 0;
-    line-height: 36px;
+    line-height: 30px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.8rem;
 }
 
-/* Custom positions */
-#chapter-navigation.position-top-right {
-    top: 20px;
+/* Default styles - these will apply if nav-vertical or nav-horizontal classes aren't present */
+
+/* Vertical navigation layout (for desktop/landscape) */
+#chapter-navigation.nav-vertical {
     right: 20px;
-    bottom: auto;
-    left: auto;
-}
-
-#chapter-navigation.position-top-left {
-    top: 20px;
-    left: 20px;
-    bottom: auto;
-    right: auto;
-}
-
-#chapter-navigation.position-bottom-left {
     bottom: 20px;
-    left: 20px;
+    left: auto;
     top: auto;
-    right: auto;
+    flex-direction: column;
+    gap: 10px;
+    width: auto;
 }
 
-/* For large screens/landscape mode - Vertical buttons on bottom right */
+#chapter-navigation.nav-vertical button {
+    width: 100%;
+}
+
+#chapter-navigation.nav-vertical .dropdown {
+    width: 100%;
+}
+
+/* Horizontal navigation layout (for mobile/portrait) */
+#chapter-navigation.nav-horizontal {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    border-radius: 0;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+#chapter-navigation.nav-horizontal button {
+    flex: 1;
+    font-size: 0.9rem;
+    padding: 0.375rem 0.5rem;
+}
+
+#chapter-navigation.nav-horizontal .dropdown {
+    flex: 1;
+    margin: 0 5px;
+}
+
+#chapter-navigation.nav-horizontal ~ #manga-content {
+    padding-bottom: 60px;
+}
+
+/* Responsive layout - these will apply by default if no toggle is pressed */
 @media (min-width: 769px) {
-    #chapter-navigation {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) {
         right: 20px;
         bottom: 20px;
         flex-direction: column;
@@ -130,18 +159,17 @@ body {
         width: auto;
     }
     
-    #chapter-navigation button {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) button {
         width: 100%;
     }
     
-    #chapter-navigation .dropdown {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) .dropdown {
         width: 100%;
     }
 }
 
-/* For small screens/portrait mode - Horizontal buttons at the bottom */
 @media (max-width: 768px) {
-    #chapter-navigation {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) {
         left: 0;
         right: 0;
         bottom: 0;
@@ -153,13 +181,13 @@ body {
         border-top-right-radius: 5px;
     }
     
-    #chapter-navigation button {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) button {
         flex: 1;
         font-size: 0.9rem;
         padding: 0.375rem 0.5rem;
     }
     
-    #chapter-navigation .dropdown {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) .dropdown {
         flex: 1;
         margin: 0 5px;
     }
@@ -169,7 +197,7 @@ body {
     }
     
     /* Add bottom padding to prevent content being hidden behind navigation */
-    body {
+    #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) ~ #manga-content {
         padding-bottom: 60px;
     }
 }
