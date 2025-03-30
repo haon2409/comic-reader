@@ -12,9 +12,9 @@ CORS(app)
 @app.route('/')
 def index():
     """
-    Redirect to the read page or show an empty manga reader.
+    Redirect to a specific manga with chapter for testing.
     """
-    return redirect('/read')
+    return redirect('/read?slug=bac-si-quai-di&chapter_id=658264dae120ddf2198d0cbb')
 
 @app.route('/read')
 def read():
@@ -30,9 +30,17 @@ def proxy_manga(slug):
     Proxy API calls to otruyenapi.com to avoid CORS issues
     """
     import requests
-    api_url = f"https://otruyenapi.com/v1/api/truyen-tranh/{slug}"
-    response = requests.get(api_url)
-    return jsonify(response.json())
+    try:
+        api_url = f"https://otruyenapi.com/v1/api/truyen-tranh/{slug}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(api_url, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise exception for 4XX/5XX responses
+        return jsonify(response.json())
+    except Exception as e:
+        app.logger.error(f"Error in proxy_manga: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/proxy/chapter/<chapter_id>')
 def proxy_chapter(chapter_id):
@@ -40,9 +48,17 @@ def proxy_chapter(chapter_id):
     Proxy API calls to sv1.otruyencdn.com to avoid CORS issues
     """
     import requests
-    api_url = f"https://sv1.otruyencdn.com/v1/api/chapter/{chapter_id}"
-    response = requests.get(api_url)
-    return jsonify(response.json())
+    try:
+        api_url = f"https://sv1.otruyencdn.com/v1/api/chapter/{chapter_id}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(api_url, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise exception for 4XX/5XX responses
+        return jsonify(response.json())
+    except Exception as e:
+        app.logger.error(f"Error in proxy_chapter: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 # Error handling
 @app.errorhandler(404)

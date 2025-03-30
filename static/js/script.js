@@ -55,20 +55,26 @@ function parseUrlParameters() {
 // Set up event listeners for interactive elements
 function setupEventListeners() {
     // Previous chapter button
-    prevChapterBtn.addEventListener('click', function() {
+    prevChapterBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         if (currentChapterIndex > 0) {
             const prevChapterId = chapters[currentChapterIndex - 1].id;
             console.log("Navigating to previous chapter: " + prevChapterId);
             navigateToChapter(prevChapterId);
+        } else {
+            console.log("No previous chapter available");
         }
     });
     
     // Next chapter button
-    nextChapterBtn.addEventListener('click', function() {
-        if (currentChapterIndex < chapters.length - 1) {
+    nextChapterBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (currentChapterIndex < chapters.length - 1 && currentChapterIndex !== -1) {
             const nextChapterId = chapters[currentChapterIndex + 1].id;
             console.log("Navigating to next chapter: " + nextChapterId);
             navigateToChapter(nextChapterId);
+        } else {
+            console.log("No next chapter available");
         }
     });
     
@@ -98,6 +104,14 @@ function setupEventListeners() {
             nextChapterBtn.click();
         }
     });
+    
+    // Log navigation button state whenever updated
+    const observeNavButtons = new MutationObserver(mutations => {
+        console.log("Navigation buttons updated: Previous disabled:", prevChapterBtn.disabled, "Next disabled:", nextChapterBtn.disabled);
+    });
+    
+    observeNavButtons.observe(prevChapterBtn, { attributes: true, attributeFilter: ['disabled'] });
+    observeNavButtons.observe(nextChapterBtn, { attributes: true, attributeFilter: ['disabled'] });
 }
 
 // Load manga content from API
@@ -365,6 +379,7 @@ function populateChapterDropdown() {
 
 // Navigate to a different chapter
 function navigateToChapter(chapterId) {
+    console.log("Navigating to chapter with ID:", chapterId);
     if (chapterId !== currentChapterId) {
         // Ensure we are on the /read route
         const url = new URL(window.location.href);
@@ -383,10 +398,15 @@ function navigateToChapter(chapterId) {
         
         // Update the current chapter id
         currentChapterId = chapterId;
-        chapterIdDisplay.textContent = currentChapterId;
+        if (chapterIdDisplay) {
+            chapterIdDisplay.textContent = currentChapterId;
+        }
         
         // Load the new chapter content
+        console.log(`Loading new chapter content for slug: ${currentSlug}, chapterId: ${currentChapterId}`);
         loadMangaContent(currentSlug, currentChapterId);
+    } else {
+        console.log("Already on this chapter, not navigating");
     }
 }
 
