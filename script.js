@@ -699,7 +699,7 @@ async function handleSearchResults(keyword) {
                             <div class="col-md-9">
                                 <div class="card-body">
                                     <h5 class="card-title">
-                                        <a href="/?slug=${manga.slug}" class="text-decoration-none text-info">
+                                        <a href="./?slug=${manga.slug}" class="text-decoration-none text-info">
                                             ${manga.name}
                                         </a>
                                     </h5>
