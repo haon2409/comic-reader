@@ -90,8 +90,6 @@ function setupEventListeners() {
     // Load nav position from localStorage
     loadNavPositionFromStorage();
     
-    // Reading mode toggle removed
-    
     // Keyboard navigation - Enhanced with more key options
     document.addEventListener('keydown', function(e) {
         // Previous chapter: Left arrow key or 'p' key 
@@ -396,14 +394,8 @@ function populateChapterDropdown() {
 function navigateToChapter(chapterId) {
     console.log("Navigating to chapter with ID:", chapterId);
     if (chapterId !== currentChapterId) {
-        // Ensure we are on the /read route
+        // Update the URL with new chapter_id
         const url = new URL(window.location.href);
-        const pathname = url.pathname;
-        
-        // If not already on /read, change the pathname
-        if (!pathname.includes('/read')) {
-            url.pathname = '/read';
-        }
         
         // Update the chapter_id param
         url.searchParams.set('chapter_id', chapterId);
@@ -472,7 +464,7 @@ function showEmptyState(message = 'No manga content to display') {
             <h3>Welcome to Manga Reader</h3>
             <p>${message}</p>
             <p>Enter a valid manga URL to begin reading.</p>
-            <p>Example: /read?slug=one-piece&chapter_id=123456</p>
+            <p>Example: ?slug=one-piece&chapter_id=123456</p>
         </div>
     `;
 }
