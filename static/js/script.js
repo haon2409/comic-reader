@@ -14,7 +14,6 @@ const errorMessage = document.getElementById('error-message');
 const prevChapterBtn = document.getElementById('prev-chapter');
 const nextChapterBtn = document.getElementById('next-chapter');
 const chapterList = document.getElementById('chapter-list');
-const readingModeToggle = document.getElementById('reading-mode');
 
 // Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -78,19 +77,7 @@ function setupEventListeners() {
         }
     });
     
-    // Reading mode toggle
-    readingModeToggle.addEventListener('change', function() {
-        const pagesContainer = document.querySelector('.manga-pages-container');
-        if (pagesContainer) {
-            if (this.checked) {
-                // Vertical reading mode
-                pagesContainer.classList.remove('horizontal-mode');
-            } else {
-                // Horizontal reading mode
-                pagesContainer.classList.add('horizontal-mode');
-            }
-        }
-    });
+    // Reading mode toggle removed
     
     // Keyboard navigation
     document.addEventListener('keydown', function(e) {
@@ -344,12 +331,8 @@ function displayMangaPages(pages) {
         // Show the content container
         mangaContent.style.display = 'block';
         
-        // Apply reading mode based on toggle state
-        if (!readingModeToggle.checked) {
-            pagesContainer.classList.add('horizontal-mode');
-        } else {
-            pagesContainer.classList.remove('horizontal-mode');
-        }
+        // Always in vertical mode (reading mode toggle removed)
+        pagesContainer.classList.remove('horizontal-mode');
     } else {
         showEmptyState('No pages found for this chapter');
     }
