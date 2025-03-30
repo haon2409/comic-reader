@@ -22,6 +22,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Parse URL parameters
     parseUrlParameters();
     
+    // Setup search form
+    const searchForm = document.getElementById('search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const keyword = document.getElementById('search-input').value.trim();
+            if (keyword) {
+                window.location.href = `/search?keyword=${encodeURIComponent(keyword)}`;
+            }
+        });
+    }
+
+    // Handle search results if on search page
+    if (window.location.pathname === '/search') {
+        handleSearchResults();
+    }
+    
     // Set up event listeners
     setupEventListeners();
     
@@ -611,5 +628,64 @@ async function loadLatestChapter(slug) {
     } finally {
         // Hide loading indicator
         loading.style.display = 'none';
+
+// Handle search results
+async function handleSearchResults() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const keyword = urlParams.get('keyword');
+    
+    if (!keyword) return;
+    
+    try {
+        mangaContent.innerHTML = '<div class="text-center my-5"><div class="spinner-border"></div></div>';
+        
+        const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`);
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.data.items) {
+            const resultsHtml = data.data.items.map(manga => {
+                const thumbnail = `${data.data.APP_DOMAIN_CDN_IMAGE}/uploads/comics/${manga.thumb_url}`;
+                const date = new Date(manga.updatedAt).toLocaleDateString();
+                
+                return `
+                    <div class="card mb-3 search-result" style="max-width: 800px; margin: auto;">
+                        <div class="row g-0">
+                            <div class="col-md-3">
+                                <img src="${thumbnail}" class="img-fluid rounded-start" alt="${manga.name}" 
+                                    style="height: 200px; object-fit: cover;">
+                            </div>
+                            <div class="col-md-9">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="/?slug=${manga.slug}" class="text-decoration-none">
+                                            ${manga.name}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">
+                                        <small>Author: ${manga.author.join(', ')}</small><br>
+                                        <small>Status: ${manga.status}</small><br>
+                                        <small>Chapters: ${manga.chapters.length}</small><br>
+                                        <small>Updated: ${date}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            mangaContent.innerHTML = `
+                <h2 class="mb-4">Search Results for: ${keyword}</h2>
+                ${resultsHtml}
+            `;
+        } else {
+            mangaContent.innerHTML = '<div class="alert alert-info">No results found.</div>';
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        mangaContent.innerHTML = '<div class="alert alert-danger">Error searching manga. Please try again.</div>';
+    }
+}
+
     }
 }
