@@ -143,13 +143,20 @@ async function loadMangaContent(slug, chapterId) {
 // Fetch manga information (title, chapters list, etc.)
 async function fetchMangaInfo(slug) {
     try {
-        // Use proxy API endpoint to avoid CORS issues
-        const apiUrl = `/api/proxy/manga/${slug}`;
+        // Use the actual API endpoint for manga information
+        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${slug}`;
         
         console.log(`Fetching manga info from: ${apiUrl}`);
         
-        // Fetch the manga data
-        const response = await fetch(apiUrl);
+        // Fetch the manga data with headers to help with API access
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -203,13 +210,20 @@ async function fetchMangaInfo(slug) {
 // Fetch chapter content (pages/images)
 async function fetchChapterContent(slug, chapterId) {
     try {
-        // Use our proxy API endpoint to avoid CORS issues
-        const apiUrl = `/api/proxy/chapter/${chapterId}`;
+        // Use the actual API endpoint for chapter content
+        const apiUrl = `https://sv1.otruyencdn.com/v1/api/chapter/${chapterId}`;
         
         console.log(`Fetching chapter content from: ${apiUrl}`);
         
-        // Fetch the chapter data
-        const response = await fetch(apiUrl);
+        // Fetch the chapter data with headers to help with API access
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
