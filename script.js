@@ -153,8 +153,12 @@ async function loadMangaContent(slug, chapterId) {
 // Fetch manga information (title, chapters list, etc.)
 async function fetchMangaInfo(slug) {
     try {
+        if (!slug) {
+            throw new Error('Manga slug is missing');
+        }
+
         // Use the actual API endpoint for manga information
-        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${slug}`;
+        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${encodeURIComponent(slug)}`;
         
         console.log(`Fetching manga info from: ${apiUrl}`);
         
@@ -185,10 +189,15 @@ async function fetchMangaInfo(slug) {
         }
         
         // Extract chapters from the API response
-        const chaptersData = data.data.item.chapters[0].server_data || [];
+        if (!data?.data?.item?.chapters?.[0]?.server_data) {
+            throw new Error('Invalid chapter data structure');
+        }
+
+        const chaptersData = data.data.item.chapters[0].server_data;
         
         // Transform the chapter data into our format
         chapters = chaptersData.map(chapter => {
+            if (!chapter) return null;
             // Extract chapter_id from chapter_api_data
             const chapterApiUrl = chapter.chapter_api_data;
             const chapterId = chapterApiUrl.split('/').pop();
@@ -287,10 +296,15 @@ async function fetchChapterContent(slug, chapterId) {
 
 // Display manga pages in the content container
 function displayMangaPages(pages) {
+    if (!mangaContent) {
+        console.error("Manga content container not found");
+        return;
+    }
+
     // Clear previous content
     mangaContent.innerHTML = '';
     
-    if (pages && pages.length > 0) {
+    if (Array.isArray(pages) && pages.length > 0) {
         // Removed chapter information display from top of page
         
         // Create container for pages
@@ -405,6 +419,11 @@ function populateChapterDropdown() {
 // Navigate to a different chapter
 function navigateToChapter(chapterId) {
     console.log("Navigating to chapter with ID:", chapterId);
+    if (!chapterId) {
+        console.error("Invalid chapter ID");
+        showErrorMessage("Không thể chuyển chapter do thiếu ID");
+        return;
+    }
     if (chapterId !== currentChapterId) {
         // Update the URL with new chapter_id
         const url = new URL(window.location.href);
@@ -629,8 +648,13 @@ async function loadLatestChapter(slug) {
 
 // Handle search results
 async function handleSearchResults(keyword) {
-    if (!keyword) {
-        mangaContent.innerHTML = '<div class="alert alert-info">Vui lòng nhập từ khóa tìm kiếm.</div>';
+    if (!keyword || typeof keyword !== 'string') {
+        mangaContent.innerHTML = '<div class="alert alert-info">Vui lòng nhập từ khóa tìm kiếm hợp lệ.</div>';
+        return;
+    }
+
+    if (!mangaContent || !document.getElementById('chapter-navigation')) {
+        console.error("Required DOM elements not found");
         return;
     }
     
