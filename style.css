@@ -26,9 +26,6 @@ body {
     -webkit-backdrop-filter: var(--apple-blur);
     box-shadow: none;
     padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
 }
 
 .navbar-brand {
