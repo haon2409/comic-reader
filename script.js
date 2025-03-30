@@ -153,19 +153,21 @@ async function loadMangaContent(slug, chapterId) {
         document.getElementById('chapter-navigation').style.display = 'flex';
 
         try {
-            // Set current chapter ID first
-            currentChapterId = chapterId;
-
-            // Fetch manga information first
+            // Fetch manga information first and wait for it to complete
             await fetchMangaInfo(slug);
-
-            // Set chapter index after manga info is loaded
+            
+            // Set current chapter ID and find its index
+            currentChapterId = chapterId || (chapters.length > 0 ? chapters[0].id : null);
             currentChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId);
-
-            if (currentChapterIndex === -1) {
-                // If chapter not found, default to first chapter
-                currentChapterIndex = 0;
-                currentChapterId = chapters[0].id;
+            
+            // Validate chapter exists
+            if (!currentChapterId || currentChapterIndex === -1) {
+                if (chapters.length > 0) {
+                    currentChapterIndex = 0;
+                    currentChapterId = chapters[0].id;
+                } else {
+                    throw new Error('No chapters available');
+                }
             }
 
             // Now fetch chapter content with confirmed chapter ID
