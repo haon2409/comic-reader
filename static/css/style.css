@@ -1,0 +1,93 @@
+/* Custom styles for the manga reader */
+
+/* General styling */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* Manga display container */
+#manga-content {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Manga page images */
+.manga-page {
+    max-width: 100%;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Horizontal reading mode */
+.horizontal-mode {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 20px 0;
+}
+
+.horizontal-mode .manga-page {
+    min-width: 95%;
+    scroll-snap-align: center;
+    margin: 0 10px;
+}
+
+/* Parameter display styling */
+.param-display {
+    border-left: 4px solid var(--bs-info);
+}
+
+/* Chapter navigation */
+#chapter-navigation {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    background-color: rgba(33, 37, 41, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Dropdown menu for chapters */
+#chapter-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #chapter-navigation {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #chapter-navigation button,
+    #chapter-navigation .dropdown {
+        width: 100%;
+    }
+}
+
+/* Empty state styling */
+.empty-state {
+    padding: 50px;
+    text-align: center;
+    border: 2px dashed #444;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: var(--bs-secondary);
+}
+
+/* Smooth transition for reading mode toggle */
+#manga-content {
+    transition: all 0.3s ease;
+}

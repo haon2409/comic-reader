@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Reader</title>
+    <!-- Bootstrap CSS from Replit CDN -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-book-open me-2"></i>Manga Reader
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Initial info display -->
+        <div id="manga-info" class="mb-4">
+            <h1 id="manga-title" class="mb-3">Manga Reader</h1>
+            <div class="param-display bg-dark p-3 rounded mb-4" id="param-display">
+                <p><strong>Slug:</strong> <span id="slug-display">Loading...</span></p>
+                <p><strong>Chapter ID:</strong> <span id="chapter-id-display">Loading...</span></p>
+            </div>
+        </div>
+
+        <!-- Chapter navigation -->
+        <div id="chapter-navigation" class="d-flex justify-content-between mb-4">
+            <button class="btn btn-secondary" id="prev-chapter" disabled>
+                <i class="fas fa-arrow-left me-2"></i>Previous Chapter
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="chapterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Chapter Selection
+                </button>
+                <ul class="dropdown-menu" id="chapter-list" aria-labelledby="chapterDropdown">
+                    <!-- Chapter list will be populated here -->
+                </ul>
+            </div>
+            <button class="btn btn-secondary" id="next-chapter" disabled>
+                Next Chapter<i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </div>
+
+        <!-- Reading preferences -->
+        <div class="mb-4">
+            <div class="card">
+                <div class="card-header">
+                    Reading Preferences
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="reading-mode" checked>
+                        <label class="form-check-label" for="reading-mode">Vertical Reading Mode</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="loading" class="text-center my-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading manga content...</p>
+        </div>
+
+        <!-- Error message -->
+        <div id="error-message" class="alert alert-danger my-4" style="display: none;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="error-text">Unable to load manga content. Please try again later.</span>
+        </div>
+
+        <!-- Manga content container -->
+        <div id="manga-content" class="text-center">
+            <!-- Manga pages will be displayed here -->
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Manga Reader</h5>
+                    <p>A simple manga reading application that allows you to enjoy your favorite manga.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>© 2023 Manga Reader</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
