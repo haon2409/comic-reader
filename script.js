@@ -146,10 +146,11 @@ function setupEventListeners() {
 // Load manga content from API
 async function loadMangaContent(slug, chapterId) {
     try {
-        // Show loading indicator
+        // Show loading indicator and navigation
         loading.style.display = 'block';
         mangaContent.style.display = 'none';
         errorMessage.style.display = 'none';
+        document.getElementById('chapter-navigation').style.display = 'flex';
         
         // Fetch manga information first
         await fetchMangaInfo(slug);
@@ -509,6 +510,7 @@ function showErrorMessage(message) {
 function showEmptyState(message = 'No manga content to display') {
     loading.style.display = 'none';
     mangaContent.style.display = 'block';
+    document.getElementById('chapter-navigation').style.display = 'none';
     mangaContent.innerHTML = `
         <div class="empty-state">
             <i class="fas fa-book"></i>
