@@ -6,8 +6,6 @@ let currentChapterIndex = -1;
 
 // DOM elements
 const mangaTitle = document.getElementById('manga-title');
-const slugDisplay = document.getElementById('slug-display');
-const chapterIdDisplay = document.getElementById('chapter-id-display');
 const mangaContent = document.getElementById('manga-content');
 const loading = document.getElementById('loading');
 const errorMessage = document.getElementById('error-message');
@@ -36,10 +34,6 @@ function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSlug = urlParams.get('slug') || '';
     currentChapterId = urlParams.get('chapter_id') || '';
-    
-    // Update the display with the extracted parameters
-    slugDisplay.textContent = currentSlug || 'Not provided';
-    chapterIdDisplay.textContent = currentChapterId || 'Not provided';
     
     // Update title if slug is available
     if (currentSlug) {
@@ -411,9 +405,6 @@ function navigateToChapter(chapterId) {
         
         // Update the current chapter id
         currentChapterId = chapterId;
-        if (chapterIdDisplay) {
-            chapterIdDisplay.textContent = currentChapterId;
-        }
         
         // Load the new chapter content
         console.log(`Loading new chapter content for slug: ${currentSlug}, chapterId: ${currentChapterId}`);
