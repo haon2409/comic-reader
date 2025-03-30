@@ -73,15 +73,15 @@ function setupEventListeners() {
     
     // Reading mode toggle removed
     
-    // Keyboard navigation
+    // Keyboard navigation - Enhanced with more key options
     document.addEventListener('keydown', function(e) {
-        // Left arrow key for previous chapter
-        if (e.key === 'ArrowLeft' && !prevChapterBtn.disabled) {
+        // Previous chapter: Left arrow key or 'p' key 
+        if ((e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') && !prevChapterBtn.disabled) {
             prevChapterBtn.click();
         }
         
-        // Right arrow key for next chapter
-        if (e.key === 'ArrowRight' && !nextChapterBtn.disabled) {
+        // Next chapter: Right arrow key or 'n' key
+        if ((e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') && !nextChapterBtn.disabled) {
             nextChapterBtn.click();
         }
     });
