@@ -737,7 +737,6 @@ async function handleSearchResults(keyword) {
             
             mangaContent.innerHTML = `
                 <div class="container">
-                    <h2 class="mb-4">Search Results for: "${keyword}"</h2>
                     ${resultsHtml}
                 </div>
             `;
