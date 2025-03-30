@@ -21,7 +21,7 @@ const chapterNavigation = document.getElementById('chapter-navigation');
 document.addEventListener('DOMContentLoaded', function() {
     // Parse URL parameters
     parseUrlParameters();
-    
+
     // Setup search form
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
@@ -33,13 +33,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Set up event listeners
     setupEventListeners();
-    
+
     // Load read history from localStorage
     loadReadHistory();
-    
+
     // Load manga content if parameters are present
     if (currentSlug && currentChapterId) {
         loadMangaContent(currentSlug, currentChapterId);
@@ -56,13 +56,13 @@ function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSlug = urlParams.get('slug') || '';
     currentChapterId = urlParams.get('chapter_id') || '';
-    
+
     // Update title if slug is available
     if (currentSlug) {
         const formattedSlug = currentSlug.split('-').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ');
-        
+
         mangaTitle.textContent = formattedSlug;
     }
 }
@@ -80,7 +80,7 @@ function setupEventListeners() {
             console.log("No previous chapter available");
         }
     });
-    
+
     // Next chapter button
     nextChapterBtn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -92,34 +92,34 @@ function setupEventListeners() {
             console.log("No next chapter available");
         }
     });
-    
+
     // Toggle navigation position button
     toggleNavPositionBtn.addEventListener('click', function(e) {
         e.preventDefault();
         toggleNavPosition();
     });
-    
+
     // Load nav position from localStorage
     loadNavPositionFromStorage();
-    
+
     // Keyboard navigation - Enhanced with more key options
     document.addEventListener('keydown', function(e) {
         // Previous chapter: Left arrow key or 'p' key 
         if ((e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') && !prevChapterBtn.disabled) {
             prevChapterBtn.click();
         }
-        
+
         // Next chapter: Right arrow key or 'n' key
         if ((e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') && !nextChapterBtn.disabled) {
             nextChapterBtn.click();
         }
     });
-    
+
     // Log navigation button state whenever updated
     const observeNavButtons = new MutationObserver(mutations => {
         console.log("Navigation buttons updated: Previous disabled:", prevChapterBtn.disabled, "Next disabled:", nextChapterBtn.disabled);
     });
-    
+
     observeNavButtons.observe(prevChapterBtn, { attributes: true, attributeFilter: ['disabled'] });
     observeNavButtons.observe(nextChapterBtn, { attributes: true, attributeFilter: ['disabled'] });
 }
@@ -131,16 +131,16 @@ async function loadMangaContent(slug, chapterId) {
         loading.style.display = 'block';
         mangaContent.style.display = 'none';
         errorMessage.style.display = 'none';
-        
+
         // Fetch manga information first
         await fetchMangaInfo(slug);
-        
+
         // Fetch chapter content
         await fetchChapterContent(slug, chapterId);
-        
+
         // Update navigation buttons
         updateNavigation();
-        
+
     } catch (error) {
         console.error('Error loading manga content:', error);
         showErrorMessage(error.message || 'Unable to load manga content. Please try again later.');
@@ -159,9 +159,9 @@ async function fetchMangaInfo(slug) {
 
         // Use the actual API endpoint for manga information
         const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${encodeURIComponent(slug)}`;
-        
+
         console.log(`Fetching manga info from: ${apiUrl}`);
-        
+
         // Fetch the manga data with headers to help with API access
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -171,37 +171,37 @@ async function fetchMangaInfo(slug) {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Check if data is valid and has expected structure
         if (!data || !data.data || !data.data.item || !data.data.item.chapters) {
             throw new Error('Invalid API response structure');
         }
-        
+
         // Update manga title if available
         if (data.data.item.name) {
             mangaTitle.textContent = data.data.item.name;
         }
-        
+
         // Extract chapters from the API response
         if (!data?.data?.item?.chapters?.[0]?.server_data) {
             throw new Error('Invalid chapter data structure');
         }
 
         const chaptersData = data.data.item.chapters[0].server_data;
-        
+
         // Transform the chapter data into our format
         chapters = chaptersData.map(chapter => {
             if (!chapter) return null;
             // Extract chapter_id from chapter_api_data
             const chapterApiUrl = chapter.chapter_api_data;
             const chapterId = chapterApiUrl.split('/').pop();
-            
+
             return {
                 id: chapterId,
                 number: parseInt(chapter.chapter_name) || 0,
@@ -209,17 +209,17 @@ async function fetchMangaInfo(slug) {
                 filename: chapter.filename || ''
             };
         });
-        
+
         // Sort chapters in ascending order (chapter 1, 2, 3...)
         chapters.sort((a, b) => a.number - b.number);
-        
+
         // Find the current chapter index
         currentChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId);
         console.log(`Current chapter index: ${currentChapterIndex} for chapter ID: ${currentChapterId}`);
-        
+
         // Populate chapter dropdown
         populateChapterDropdown();
-        
+
     } catch (error) {
         console.error('Error fetching manga info:', error);
         throw new Error('Failed to fetch manga information: ' + error.message);
@@ -231,9 +231,9 @@ async function fetchChapterContent(slug, chapterId) {
     try {
         // Use the actual API endpoint for chapter content
         const apiUrl = `https://sv1.otruyencdn.com/v1/api/chapter/${chapterId}`;
-        
+
         console.log(`Fetching chapter content from: ${apiUrl}`);
-        
+
         // Fetch the chapter data with headers to help with API access
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -243,51 +243,51 @@ async function fetchChapterContent(slug, chapterId) {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('Chapter API response:', data);
-        
+
         // Check if data is valid and has expected structure
         if (!data || data.status !== 'success' || !data.data) {
             throw new Error('Invalid API response structure');
         }
-        
+
         // Xử lý cấu trúc API mới
         const domainCdn = data.data.domain_cdn || '';
         const chapterPath = data.data.item?.chapter_path || '';
         const chapterImages = data.data.item?.chapter_image || [];
-        
+
         if (!chapterImages.length) {
             throw new Error('No images found in this chapter');
         }
-        
+
         // Tạo URLs của các trang theo format: domain_cdn + chapter_path + image_file
         const pages = chapterImages.map((image, index) => {
             const imageFile = image.image_file || '';
             const fullUrl = `${domainCdn}/${chapterPath}/${imageFile}`;
-            
+
             return {
                 id: index + 1,
                 url: fullUrl,
                 filename: imageFile
             };
         });
-        
+
         console.log(`Loaded ${pages.length} pages for chapter`);
-        
+
         // Display the manga pages
         displayMangaPages(pages);
-        
+
         // Update page title with chapter information
         if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
             const chapter = chapters[currentChapterIndex];
             document.title = `Chapter ${chapter.number} - ${mangaTitle.textContent}`;
         }
-        
+
     } catch (error) {
         console.error('Error fetching chapter content:', error);
         throw new Error('Failed to fetch chapter content: ' + error.message);
@@ -303,51 +303,51 @@ function displayMangaPages(pages) {
 
     // Clear previous content
     mangaContent.innerHTML = '';
-    
+
     if (Array.isArray(pages) && pages.length > 0) {
         // Removed chapter information display from top of page
-        
+
         // Create container for pages
         const pagesContainer = document.createElement('div');
         pagesContainer.className = 'manga-pages-container';
         mangaContent.appendChild(pagesContainer);
-        
+
         // Create elements for each page
         pages.forEach((page, index) => {
             const pageElement = document.createElement('div');
             pageElement.className = 'manga-page-container';
             pageElement.dataset.pageNumber = index + 1;
-            
+
             // Create image element
             const img = document.createElement('img');
             img.src = page.url;
             img.alt = `Page ${page.id}`;
             img.className = 'manga-page';
             img.loading = 'lazy'; // Lazy load images for better performance
-            
+
             // Add error handling for images
             img.onerror = function() {
                 this.onerror = null;
                 this.src = 'https://via.placeholder.com/800x1200/333333/FFFFFF?text=Image+Load+Error';
                 console.error(`Failed to load image: ${page.url}`);
             };
-            
+
             // Add page number indicator
             const pageNumber = document.createElement('div');
             pageNumber.className = 'page-number badge bg-secondary';
             pageNumber.textContent = `Page ${index + 1}`;
-            
+
             // Add elements to container
             pageElement.appendChild(img);
             pageElement.appendChild(pageNumber);
             pagesContainer.appendChild(pageElement);
-            
+
             // Removed page number update - not needed anymore
         });
-        
+
         // Show the content container
         mangaContent.style.display = 'block';
-        
+
         // Always in vertical mode (reading mode toggle removed)
         pagesContainer.classList.remove('horizontal-mode');
     } else {
@@ -359,7 +359,7 @@ function displayMangaPages(pages) {
 function populateChapterDropdown() {
     // Clear previous items
     chapterList.innerHTML = '';
-    
+
     if (chapters && chapters.length > 0) {
         // Update the dropdown button text to show the currently selected chapter
         if (currentChapterIndex !== -1) {
@@ -368,47 +368,47 @@ function populateChapterDropdown() {
         } else {
             document.getElementById('chapterDropdown').textContent = 'Chapter Selection';
         }
-        
+
         // Add chapters to dropdown in reverse order (newest first)
         // Create a copy of the array for sorting to avoid affecting the original order
         const sortedChapters = [...chapters].reverse();
-        
+
         sortedChapters.forEach(chapter => {
             const listItem = document.createElement('li');
             const link = document.createElement('a');
             link.className = 'dropdown-item';
             link.href = '#';
-            
+
             // Format chapter name with number and title if available
             let chapterText = `Chapter ${chapter.number}`;
             if (chapter.title && chapter.title.trim() !== '') {
                 chapterText += `: ${chapter.title}`;
             }
             link.textContent = chapterText;
-            
+
             // Mark chapter as read if in read history
             if (readChapters.includes(chapter.id)) {
                 link.classList.add('read');
             }
-            
+
             // Highlight the current chapter
             if (chapter.id === currentChapterId) {
                 link.classList.add('active');
                 link.innerHTML = `<i class="fas fa-bookmark me-2"></i>${chapterText}`;
             }
-            
+
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigateToChapter(chapter.id);
             });
-            
+
             listItem.appendChild(link);
             chapterList.appendChild(listItem);
         });
-        
+
         // Set dropdown position based on current navigation position
         updateDropdownPosition();
-        
+
     } else {
         const listItem = document.createElement('li');
         listItem.textContent = 'No chapters available';
@@ -427,16 +427,16 @@ function navigateToChapter(chapterId) {
     if (chapterId !== currentChapterId) {
         // Update the URL with new chapter_id
         const url = new URL(window.location.href);
-        
+
         // Update the chapter_id param
         url.searchParams.set('chapter_id', chapterId);
-        
+
         // Update the browser history and URL
         window.history.pushState({}, '', url.toString());
-        
+
         // Update the current chapter id
         currentChapterId = chapterId;
-        
+
         // Load the new chapter content
         console.log(`Loading new chapter content for slug: ${currentSlug}, chapterId: ${currentChapterId}`);
         loadMangaContent(currentSlug, currentChapterId);
@@ -456,7 +456,7 @@ function updateNavigation() {
         prevChapterBtn.innerHTML = `<i class="fas fa-arrow-left"></i>`;
         prevChapterBtn.title = `No Previous Chapter`;
     }
-    
+
     if (currentChapterIndex < chapters.length - 1 && currentChapterIndex !== -1) {
         nextChapterBtn.disabled = false;
         nextChapterBtn.innerHTML = `<i class="fas fa-arrow-right"></i>`;
@@ -466,10 +466,10 @@ function updateNavigation() {
         nextChapterBtn.innerHTML = `<i class="fas fa-arrow-right"></i>`;
         nextChapterBtn.title = `No Next Chapter`;
     }
-    
+
     // Save current chapter ID to read history
     saveReadChapter(currentChapterId);
-    
+
     // Update page title
     if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
         const chapter = chapters[currentChapterIndex];
@@ -504,16 +504,16 @@ function showEmptyState(message = 'No manga content to display') {
 function toggleNavPosition() {
     // Toggle the navigation layout state
     isVerticalNav = !isVerticalNav;
-    
+
     // Apply the appropriate classes based on current state
     applyNavPositionStyles();
-    
+
     // Save to localStorage
     localStorage.setItem('isVerticalNav', isVerticalNav.toString());
-    
+
     // Update the icon/tooltip to show current position
     updateNavPositionIcon();
-    
+
     // Update dropdown menu position
     updateDropdownPosition();
 }
@@ -521,17 +521,17 @@ function toggleNavPosition() {
 // Load navigation position from localStorage
 function loadNavPositionFromStorage() {
     const savedPosition = localStorage.getItem('isVerticalNav');
-    
+
     if (savedPosition !== null) {
         isVerticalNav = savedPosition === 'true';
     }
-    
+
     // Apply the saved position styles
     applyNavPositionStyles();
-    
+
     // Update icon for current position
     updateNavPositionIcon();
-    
+
     // Update dropdown menu position
     updateDropdownPosition();
 }
@@ -540,7 +540,7 @@ function loadNavPositionFromStorage() {
 function applyNavPositionStyles() {
     // Remove responsive classes that are controlled by media queries
     chapterNavigation.classList.remove('nav-vertical', 'nav-horizontal');
-    
+
     if (isVerticalNav) {
         // Force vertical layout regardless of screen size
         chapterNavigation.classList.add('nav-vertical');
@@ -566,10 +566,10 @@ function updateNavPositionIcon() {
 function updateDropdownPosition() {
     const dropdownMenu = document.querySelector('.dropdown-menu');
     if (!dropdownMenu) return;
-    
+
     // Remove any previously set positions
     dropdownMenu.classList.remove('dropdown-menu-end', 'dropdown-menu-start', 'dropdown-menu-up');
-    
+
     if (isVerticalNav) {
         // If nav is vertical (on right side), show dropdown to the left
         dropdownMenu.classList.add('dropdown-menu-start');
@@ -595,7 +595,7 @@ function loadReadHistory() {
 // Save a chapter to read history
 function saveReadChapter(chapterId) {
     if (!chapterId) return;
-    
+
     // Add the chapter ID to read history if not already present
     if (!readChapters.includes(chapterId)) {
         readChapters.push(chapterId);
@@ -611,26 +611,26 @@ async function loadLatestChapter(slug) {
         loading.style.display = 'block';
         mangaContent.style.display = 'none';
         errorMessage.style.display = 'none';
-        
+
         // Fetch manga info to get the list of chapters
         await fetchMangaInfo(slug);
-        
+
         // If chapters were loaded successfully
         if (chapters && chapters.length > 0) {
             // Use the latest chapter
             const latestChapter = chapters[chapters.length - 1];
-            
+
             // Update the current chapter ID
             currentChapterId = latestChapter.id;
-            
+
             // Update URL with the chapter ID
             const url = new URL(window.location.href);
             url.searchParams.set('chapter_id', currentChapterId);
             window.history.replaceState({}, '', url.toString());
-            
+
             // Load the chapter content
             await fetchChapterContent(slug, currentChapterId);
-            
+
             // Update navigation buttons
             updateNavigation();
         } else {
@@ -657,28 +657,28 @@ async function handleSearchResults(keyword) {
         console.error("Required DOM elements not found");
         return;
     }
-    
+
     // Hide other elements during search
     document.getElementById('chapter-navigation').style.display = 'none';
     mangaTitle.textContent = `Kết quả tìm kiếm: "${keyword}"`;
-    
+
     try {
         // Show loading spinner
         mangaContent.innerHTML = '<div class="text-center my-5"><div class="spinner-border"></div></div>';
-        
+
         const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`, {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
             const resultsHtml = data.data.items.map(manga => {
                 const thumbnail = manga.thumb_url ? 
@@ -687,7 +687,7 @@ async function handleSearchResults(keyword) {
                 const date = manga.updatedAt ? new Date(manga.updatedAt).toLocaleDateString() : 'N/A';
                 const authors = Array.isArray(manga.author) ? manga.author.join(', ') : 'Unknown';
                 const chapterCount = manga.chapters && Array.isArray(manga.chapters) ? manga.chapters.length : 0;
-                
+
                 return `
                     <div class="card mb-3 search-result" style="max-width: 800px; margin: auto;">
                         <div class="row g-0">
@@ -699,7 +699,7 @@ async function handleSearchResults(keyword) {
                             <div class="col-md-9">
                                 <div class="card-body">
                                     <h5 class="card-title">
-                                        <a href="/?slug=${manga.slug}" class="text-decoration-none text-info">
+                                        <a href="./?slug=${manga.slug}" class="text-decoration-none text-info">
                                             ${manga.name}
                                         </a>
                                     </h5>
@@ -715,7 +715,7 @@ async function handleSearchResults(keyword) {
                     </div>
                 `;
             }).join('');
-            
+
             mangaContent.innerHTML = `
                 <div class="container">
                     <h2 class="mb-4">Search Results for: "${keyword}"</h2>
@@ -737,4 +737,5 @@ async function handleSearchResults(keyword) {
                 Error searching manga. Please try again later.
             </div>`;
     }
+}
 }
