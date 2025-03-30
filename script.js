@@ -156,6 +156,10 @@ async function loadMangaContent(slug, chapterId) {
 // Fetch manga information (title, chapters list, etc.)
 async function fetchMangaInfo(slug) {
     try {
+        if (!slug) {
+            throw new Error('Manga ID is missing');
+        }
+
         // Use the actual API endpoint for manga information
         const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${slug}`;
         
@@ -172,7 +176,7 @@ async function fetchMangaInfo(slug) {
         });
         
         if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
+            throw new Error(`Không thể tải thông tin truyện. Mã lỗi: ${response.status}`);
         }
         
         const data = await response.json();
@@ -466,8 +470,9 @@ function updateNavigation() {
 // Show error message
 function showErrorMessage(message) {
     errorMessage.style.display = 'block';
-    document.getElementById('error-text').textContent = message;
+    document.getElementById('error-text').textContent = message || 'Đã xảy ra lỗi khi tải truyện. Vui lòng thử lại sau.';
     mangaContent.style.display = 'none';
+    loading.style.display = 'none';
 }
 
 // Show empty state when no content is available
