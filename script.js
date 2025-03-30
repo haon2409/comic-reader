@@ -629,6 +629,9 @@ async function loadLatestChapter(slug) {
         // Hide loading indicator
         loading.style.display = 'none';
 
+}
+}
+
 // Handle search results
 async function handleSearchResults() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -713,8 +716,5 @@ async function handleSearchResults() {
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 Error searching manga. Please try again later.
             </div>`;
-    }
-}
-
     }
 }
