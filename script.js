@@ -643,8 +643,8 @@ async function handleSearchResults() {
     }
     
     try {
-        // Show loading spinner
-        mangaContent.innerHTML = '<div class="text-center my-5"><div class="spinner-border"></div></div>';
+        // Show only spinner without text
+        mangaContent.innerHTML = '<div class="text-center my-3"><div class="spinner-border"></div></div>';
         
         const response = await fetch(`https://otruyenapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}`, {
             headers: {
