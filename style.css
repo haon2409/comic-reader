@@ -289,17 +289,17 @@ body {
         width: auto;
         border-radius: 20px;
     }
-    
+
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) button {
         width: 100%;
         border-radius: 15px;
         margin: 2px 0;
     }
-    
+
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) .dropdown {
         width: 100%;
     }
-    
+
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) #toggle-nav-position {
         align-self: center;
     }
@@ -320,22 +320,22 @@ body {
         gap: 8px;
         padding: 8px 16px;
     }
-    
+
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) button {
         flex: 0 0 auto;
         border-radius: 15px;
         padding: 4px 12px;
     }
-    
+
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) .dropdown {
         flex: 1;
         max-width: 140px;
     }
-    
+
     .manga-page {
         max-width: 100%;
     }
-    
+
     /* Add bottom padding to prevent content being hidden behind navigation */
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) ~ #manga-content {
         padding-bottom: 60px;
@@ -416,4 +416,54 @@ body {
 @keyframes loading-pulse {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* Apple-inspired search result styling */
+.search-result {
+    max-width: 800px;
+    margin: auto;
+    background: var(--apple-surface);
+    backdrop-filter: var(--apple-blur);
+    -webkit-backdrop-filter: var(--apple-blur);
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.search-result:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.search-result .card-body {
+    padding: 1.5rem;
+}
+
+.search-result .card-title a {
+    color: var(--apple-primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.search-result .card-title a:hover {
+    color: #5cdbff;
+}
+
+.search-result .card-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+}
+
+.search-result img {
+    height: 200px;
+    object-fit: cover;
+    border-top-left-radius: 13px;
+    border-bottom-left-radius: 13px;
+    padding: 8px; /* Added padding for the thumbnail */
+}
+.highlight-text {
+    color:#5cdbff;
 }
