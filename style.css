@@ -599,3 +599,15 @@ body {
     color: #ff7875;
     transform: scale(1.1);
 }
+
+.followed-manga-item img {
+    transition: all 0.3s ease;
+}
+
+.followed-manga-item:hover img {
+    transform: scale(1.05);
+}
+
+.followed-manga-item .small {
+    line-height: 1.2;
+}

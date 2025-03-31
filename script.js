@@ -424,6 +424,64 @@ async function fetchMangaInfo(slug) {
     }
 }
 
+// Fetch detailed manga information for followed mangas
+async function fetchMangaDetails(slug) {
+    try {
+        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${encodeURIComponent(slug)}`;
+        const response = await fetch(apiUrl, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `API request failed with status ${response.status}`,
+            );
+        }
+
+        const data = await response.json();
+        if (!data || !data.data || !data.data.item) {
+            throw new Error("Invalid API response structure");
+        }
+
+        const manga = data.data.item;
+        const cdnDomain =
+            data.data.APP_DOMAIN_CDN_IMAGE || "https://sv1.otruyencdn.com";
+
+        return {
+            slug: manga.slug,
+            name: manga.name || "Unknown Title",
+            author: Array.isArray(manga.author)
+                ? manga.author.join(", ")
+                : "Unknown Author",
+            thumbnail:
+                `${cdnDomain}/uploads/comics/${manga.thumb_url}` ||
+                "https://via.placeholder.com/50x70?text=No+Image",
+            status: manga.status || "Unknown",
+            chapterCount: manga.chapters?.[0]?.server_data?.length || 0,
+            updatedAt: manga.updatedAt
+                ? new Date(manga.updatedAt).toLocaleDateString()
+                : "N/A",
+        };
+    } catch (error) {
+        console.error(`Error fetching details for slug ${slug}:`, error);
+        return {
+            slug,
+            name: "Error Loading Title",
+            author: "N/A",
+            thumbnail: "https://via.placeholder.com/50x70?text=Error",
+            status: "N/A",
+            chapterCount: 0,
+            updatedAt: "N/A",
+        };
+    }
+}
+
 // Fetch chapter content (pages/images)
 async function fetchChapterContent(slug, chapterId) {
     try {
@@ -699,34 +757,60 @@ function showErrorMessage(message) {
     mangaContent.style.display = "none";
 }
 
-function showEmptyState(message = "No manga content to display") {
+async function showEmptyState(message = "No manga content to display") {
     loading.style.display = "none";
     mangaContent.style.display = "block";
     document.getElementById("chapter-navigation").style.display = "none";
     document.getElementById("follow-manga-btn").style.display = "none";
 
-    // Base empty state HTML
-    let emptyStateHtml = `
-        <div class="empty-state">
-            <i class="fas fa-book"></i>
-            <h3>Welcome to Manga Reader</h3>
-            <p>${message}</p>
-            <p>Enter a valid manga URL to begin reading.</p>
-            <p><a href="./?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e" target="_blank">Example: ?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e</a></p>
-        </div>
-    `;
+    let emptyStateHtml = "";
 
-    // Add followed mangas section if there are any
+    // Chỉ hiển thị "Welcome to Manga Reader" nếu không có truyện theo dõi
+    if (followedMangas.length === 0) {
+        emptyStateHtml = `
+            <div class="empty-state">
+                <i class="fas fa-book"></i>
+                <h3>Welcome to Manga Reader</h3>
+                <p>${message}</p>
+                <p>Enter a valid manga URL to begin reading.</p>
+                <p><a href="./?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e" target="_blank">Example: ?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e</a></p>
+            </div>
+        `;
+    }
+
+    // Hiển thị danh sách "Truyện theo dõi" nếu có
     if (followedMangas.length > 0) {
-        const followedMangasHtml = followedMangas
+        // Show loading indicator while fetching data
+        mangaContent.innerHTML = `
+            <div class="text-center my-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading followed mangas...</span>
+                </div>
+            </div>
+        `;
+
+        // Fetch details for all followed mangas concurrently
+        const mangaDetailsPromises = followedMangas.map((manga) =>
+            fetchMangaDetails(manga.slug),
+        );
+        const mangaDetails = await Promise.all(mangaDetailsPromises);
+
+        const followedMangasHtml = mangaDetails
             .map((manga) => {
-                const url = manga.chapterId
-                    ? `./?slug=${manga.slug}&chapter_id=${manga.chapterId}`
+                const url = followedMangas.find((m) => m.slug === manga.slug)
+                    ?.chapterId
+                    ? `./?slug=${manga.slug}&chapter_id=${followedMangas.find((m) => m.slug === manga.slug).chapterId}`
                     : `./?slug=${manga.slug}`;
                 return `
-                <div class="followed-manga-item d-flex justify-content-between align-items-center">
-                    <a href="${url}">${manga.title}</a>
-                    <button class="unfollow-btn" data-slug="${manga.slug}" title="Bỏ theo dõi">
+                <div class="followed-manga-item d-flex align-items-center">
+                    <img src="${manga.thumbnail}" alt="${manga.name}" class="me-3" style="width: 50px; height: 70px; object-fit: cover; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/50x70?text=Error';">
+                    <div class="flex-grow-1">
+                        <a href="${url}" class="text-info">${manga.name}</a>
+                        <p class="small text-muted mb-0">Tác giả: ${manga.author}</p>
+                        <p class="small text-muted mb-0">Trạng thái: ${manga.status} | ${manga.chapterCount} chương</p>
+                        <p class="small text-muted mb-0">Cập nhật: ${manga.updatedAt}</p>
+                    </div>
+                    <button class="unfollow-btn ms-2" data-slug="${manga.slug}" title="Bỏ theo dõi">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
