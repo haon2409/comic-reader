@@ -537,3 +537,65 @@ body {
 .highlight-text {
     color: #5cdbff;
 }
+
+/* Follow button styling */
+.follow-btn {
+    transition: all 0.2s ease;
+}
+
+.follow-btn:hover {
+    transform: scale(1.05);
+    background: var(--apple-primary);
+}
+
+.follow-btn.followed {
+    background: var(--apple-primary);
+    color: #fff;
+}
+
+.follow-btn.followed i {
+    color: #ffd700; /* Màu vàng cho icon ngôi sao khi đã theo dõi */
+}
+
+/* Followed mangas section */
+.followed-mangas {
+    margin-top: 20px;
+}
+
+.followed-manga-item {
+    background: var(--apple-surface);
+    backdrop-filter: var(--apple-blur);
+    -webkit-backdrop-filter: var(--apple-blur);
+    border-radius: 13px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.followed-manga-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.followed-manga-item a {
+    color: var(--apple-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.followed-manga-item a:hover {
+    color: #5cdbff;
+}
+
+/* Unfollow button styling */
+.unfollow-btn {
+    background: transparent;
+    border: none;
+    color: #ff4d4f; /* Màu đỏ nhạt cho nút Bỏ theo dõi */
+    transition: all 0.2s ease;
+}
+
+.unfollow-btn:hover {
+    color: #ff7875;
+    transform: scale(1.1);
+}

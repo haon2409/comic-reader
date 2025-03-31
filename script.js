@@ -5,6 +5,7 @@ let chapters = [];
 let currentChapterIndex = -1;
 let isVerticalNav = true; // Default to vertical navigation (for desktop/landscape)
 let readChapters = []; // Array to store IDs of chapters that have been read
+let followedMangas = []; // Danh sách truyện theo dõi
 
 // DOM elements
 const mangaTitle = document.getElementById("manga-title");
@@ -61,11 +62,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // Load read history from localStorage
     loadReadHistory();
 
+    // Load followed mangas from localStorage
+    loadFollowedMangas();
+
     // Load manga content if parameters are present
     if (currentSlug && currentChapterId) {
         loadMangaContent(currentSlug, currentChapterId);
     } else if (currentSlug) {
-        // If we have slug but no chapter_id, fetch manga info to get the latest chapter
         loadLatestChapter(currentSlug);
     } else {
         showEmptyState();
@@ -114,24 +117,68 @@ document.addEventListener("touchend", function (e) {
     }
 });
 
-// Parse URL parameters to extract slug and chapter_id
 function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSlug = urlParams.get("slug") || "";
     currentChapterId = urlParams.get("chapter_id") || "";
 
-    // Update title if slug is available
     if (currentSlug) {
         const formattedSlug = currentSlug
             .split("-")
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
-
         mangaTitle.textContent = formattedSlug;
+        const followBtn = document.getElementById("follow-manga-btn");
+        followBtn.style.display = "inline-block";
+        followBtn.setAttribute("data-slug", currentSlug); // Thêm data-slug
+
+        // Check if this manga is followed
+        const isFollowed = followedMangas.some((m) => m.slug === currentSlug);
+        if (isFollowed) {
+            followBtn.classList.add("followed");
+            followBtn.innerHTML = `<i class="fas fa-star me-1"></i> Đã theo dõi`;
+        } else {
+            followBtn.classList.remove("followed");
+            followBtn.innerHTML = `<i class="fas fa-star me-1"></i> Theo dõi`;
+        }
+    } else {
+        document.getElementById("follow-manga-btn").style.display = "none";
     }
 }
 
-// Set up event listeners for interactive elements
+// Toggle follow/unfollow for a manga
+function toggleFollowManga(slug, title, chapterId = null) {
+    const mangaIndex = followedMangas.findIndex((manga) => manga.slug === slug);
+    const buttons = document.querySelectorAll(
+        `.follow-btn[data-slug="${slug}"], #follow-manga-btn[data-slug="${slug}"]`,
+    );
+
+    if (mangaIndex === -1) {
+        // Follow: Add to list
+        followedMangas.push({ slug, title, chapterId });
+        buttons.forEach((button) => {
+            button.classList.add("followed");
+            button.innerHTML = `<i class="fas fa-star me-1"></i> Đã theo dõi`;
+        });
+    } else {
+        // Unfollow: Remove from list
+        followedMangas.splice(mangaIndex, 1);
+        buttons.forEach((button) => {
+            button.classList.remove("followed");
+            button.innerHTML = `<i class="fas fa-star me-1"></i> Theo dõi`;
+        });
+    }
+
+    // Save to localStorage
+    saveFollowedMangas();
+
+    // Refresh the followed mangas list on homepage if we're on it
+    if (!currentSlug) {
+        showEmptyState();
+    }
+}
+
+// Update setupEventListeners to handle follow buttons
 function setupEventListeners() {
     // Previous chapter button
     prevChapterBtn.addEventListener("click", function (e) {
@@ -171,15 +218,12 @@ function setupEventListeners() {
 
     // Keyboard navigation - Enhanced with more key options
     document.addEventListener("keydown", function (e) {
-        // Previous chapter: Left arrow key or 'p' key
         if (
             (e.key === "ArrowLeft" || e.key.toLowerCase() === "p") &&
             !prevChapterBtn.disabled
         ) {
             prevChapterBtn.click();
         }
-
-        // Next chapter: Right arrow key or 'n' key
         if (
             (e.key === "ArrowRight" || e.key.toLowerCase() === "n") &&
             !nextChapterBtn.disabled
@@ -206,9 +250,29 @@ function setupEventListeners() {
         attributes: true,
         attributeFilter: ["disabled"],
     });
+
+    // Add event listeners for follow buttons
+    document.addEventListener("click", function (e) {
+        const followBtn = e.target.closest(".follow-btn");
+        const unfollowBtn = e.target.closest(".unfollow-btn");
+
+        if (followBtn) {
+            const slug = followBtn.dataset.slug || currentSlug;
+            const title = followBtn.dataset.title || mangaTitle.textContent;
+            const chapterId = followBtn.dataset.chapterId || currentChapterId;
+            toggleFollowManga(slug, title, chapterId);
+        }
+
+        if (unfollowBtn) {
+            const slug = unfollowBtn.dataset.slug;
+            const manga = followedMangas.find((m) => m.slug === slug);
+            if (manga) {
+                toggleFollowManga(slug, manga.title, manga.chapterId);
+            }
+        }
+    });
 }
 
-// Load manga content from API
 async function loadMangaContent(slug, chapterId) {
     try {
         // Show loading indicator and navigation
@@ -247,6 +311,17 @@ async function loadMangaContent(slug, chapterId) {
 
         // Update navigation buttons
         updateNavigation();
+
+        // Update follow button state after manga info is loaded
+        const followBtn = document.getElementById("follow-manga-btn");
+        const isFollowed = followedMangas.some((m) => m.slug === currentSlug);
+        if (isFollowed) {
+            followBtn.classList.add("followed");
+            followBtn.innerHTML = `<i class="fas fa-star me-1"></i> Đã theo dõi`;
+        } else {
+            followBtn.classList.remove("followed");
+            followBtn.innerHTML = `<i class="fas fa-star me-1"></i> Theo dõi`;
+        }
 
         // Apply warmth filter after content is loaded
         applyWarmthFromStorage();
@@ -624,12 +699,14 @@ function showErrorMessage(message) {
     mangaContent.style.display = "none";
 }
 
-// Show empty state when no content is available
 function showEmptyState(message = "No manga content to display") {
     loading.style.display = "none";
     mangaContent.style.display = "block";
     document.getElementById("chapter-navigation").style.display = "none";
-    mangaContent.innerHTML = `
+    document.getElementById("follow-manga-btn").style.display = "none";
+
+    // Base empty state HTML
+    let emptyStateHtml = `
         <div class="empty-state">
             <i class="fas fa-book"></i>
             <h3>Welcome to Manga Reader</h3>
@@ -638,6 +715,34 @@ function showEmptyState(message = "No manga content to display") {
             <p><a href="./?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e" target="_blank">Example: ?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e</a></p>
         </div>
     `;
+
+    // Add followed mangas section if there are any
+    if (followedMangas.length > 0) {
+        const followedMangasHtml = followedMangas
+            .map((manga) => {
+                const url = manga.chapterId
+                    ? `./?slug=${manga.slug}&chapter_id=${manga.chapterId}`
+                    : `./?slug=${manga.slug}`;
+                return `
+                <div class="followed-manga-item d-flex justify-content-between align-items-center">
+                    <a href="${url}">${manga.title}</a>
+                    <button class="unfollow-btn" data-slug="${manga.slug}" title="Bỏ theo dõi">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            })
+            .join("");
+
+        emptyStateHtml += `
+            <div class="followed-mangas">
+                <h4 class="mb-3">Truyện theo dõi</h4>
+                ${followedMangasHtml}
+            </div>
+        `;
+    }
+
+    mangaContent.innerHTML = emptyStateHtml;
 }
 
 // Toggle the navigation bar layout between vertical (desktop) and horizontal (mobile)
@@ -749,6 +854,24 @@ function saveReadChapter(chapterId) {
     }
 }
 
+// Load followed mangas from localStorage
+function loadFollowedMangas() {
+    const followed = localStorage.getItem("followedMangas");
+    if (followed) {
+        try {
+            followedMangas = JSON.parse(followed);
+        } catch (error) {
+            console.error("Error parsing followed mangas:", error);
+            followedMangas = [];
+        }
+    }
+}
+
+// Save followed mangas to localStorage
+function saveFollowedMangas() {
+    localStorage.setItem("followedMangas", JSON.stringify(followedMangas));
+}
+
 // Load the latest chapter when no chapter_id is specified
 async function loadLatestChapter(slug) {
     try {
@@ -796,7 +919,6 @@ async function loadLatestChapter(slug) {
     }
 }
 
-// Handle search results
 async function handleSearchResults(keyword) {
     if (!keyword || typeof keyword !== "string") {
         mangaContent.innerHTML =
@@ -809,12 +931,11 @@ async function handleSearchResults(keyword) {
         return;
     }
 
-    // Hide other elements during search
     document.getElementById("chapter-navigation").style.display = "none";
     mangaTitle.textContent = `Kết quả tìm kiếm: "${keyword}"`;
+    document.getElementById("follow-manga-btn").style.display = "none";
 
     try {
-        // Show loading spinner
         mangaContent.innerHTML =
             '<div class="text-center my-5"><div class="spinner-border"></div></div>';
 
@@ -859,6 +980,12 @@ async function handleSearchResults(keyword) {
                             ? manga.chapters[0].server_data.length
                             : 0;
 
+                    const isFollowed = followedMangas.some(
+                        (m) => m.slug === manga.slug,
+                    );
+                    const followText = isFollowed ? "Đã theo dõi" : "Theo dõi";
+                    const followClass = isFollowed ? "followed" : "";
+
                     return `
                     <div class="card mb-3 search-result" style="max-width: 800px; margin: auto;">
                         <div class="row g-0">
@@ -869,11 +996,16 @@ async function handleSearchResults(keyword) {
                             </div>
                             <div class="col-md-9">
                                 <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="#" onclick="handleMangaClick('${manga.slug}'); return false;" class="text-decoration-none text-info">
-                                            ${manga.name}
-                                        </a>
-                                    </h5>
+                                    <div class="d-flex align-items-center">
+                                        <h5 class="card-title me-2">
+                                            <a href="#" onclick="handleMangaClick('${manga.slug}'); return false;" class="text-decoration-none text-info">
+                                                ${manga.name}
+                                            </a>
+                                        </h5>
+                                        <button class="btn btn-sm btn-outline-info follow-btn ${followClass}" data-slug="${manga.slug}" data-title="${manga.name}">
+                                            <i class="fas fa-star me-1"></i> ${followText}
+                                        </button>
+                                    </div>
                                     <p class="card-text">
                                         <small class="text-muted">Author: <span class="highlight-text">${authors}</span></small><br>
                                         <small class="text-muted">Status: <span class="highlight-text">${manga.status || "Unknown"}</span></small><br>
