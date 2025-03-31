@@ -23,12 +23,12 @@ function getBasePath() {
     const path = window.location.pathname;
     const segments = path.split("/").filter((segment) => segment.length > 0);
 
-    // Check if we're on GitHub Pages with /comic-reader/
-    if (segments[0] === "comic-reader") {
-        return "/comic-reader/";
+    // Check if we're on GitHub Pages with /manga-reader/
+    if (segments[0] === "manga-reader") {
+        return "/manga-reader/";
     }
 
-    return "/";
+    return "./";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
