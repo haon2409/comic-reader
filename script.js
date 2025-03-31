@@ -802,15 +802,15 @@ async function showEmptyState(message = "No manga content to display") {
                     ? `./?slug=${manga.slug}&chapter_id=${followedMangas.find((m) => m.slug === manga.slug).chapterId}`
                     : `./?slug=${manga.slug}`;
                 return `
-                <div class="followed-manga-item d-flex align-items-center">
-                    <img src="${manga.thumbnail}" alt="${manga.name}" class="me-3" style="width: 50px; height: 70px; object-fit: cover; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/50x70?text=Error';">
-                    <div class="flex-grow-1">
-                        <a href="${url}" class="text-info">${manga.name}</a>
-                        <p class="small text-muted mb-0">Tác giả: ${manga.author}</p>
-                        <p class="small text-muted mb-0">Trạng thái: ${manga.status} | ${manga.chapterCount} chương</p>
-                        <p class="small text-muted mb-0">Cập nhật: ${manga.updatedAt}</p>
+                <div class="followed-manga-card">
+                    <img src="${manga.thumbnail}" alt="${manga.name}" class="followed-manga-thumbnail" onerror="this.src='https://via.placeholder.com/80x120?text=Error';">
+                    <div class="followed-manga-info">
+                        <a href="${url}" class="followed-manga-title">${manga.name}</a>
+                        <p class="small text-muted mb-1">Tác giả: <span class="highlight-text">${manga.author}</span></p>
+                        <p class="small text-muted mb-1">Trạng thái: <span class="highlight-text">${manga.status}</span></p>
+                        <p class="small text-muted mb-0">Chương: <span class="highlight-text">${manga.chapterCount}</span> | Cập nhật: <span class="highlight-text">${manga.updatedAt}</span></p>
                     </div>
-                    <button class="unfollow-btn ms-2" data-slug="${manga.slug}" title="Bỏ theo dõi">
+                    <button class="unfollow-btn" data-slug="${manga.slug}" title="Bỏ theo dõi">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -818,10 +818,12 @@ async function showEmptyState(message = "No manga content to display") {
             })
             .join("");
 
-        emptyStateHtml += `
+        emptyStateHtml = `
             <div class="followed-mangas">
-                <h4 class="mb-3">Truyện theo dõi</h4>
-                ${followedMangasHtml}
+                <h4 class="mb-4">Truyện theo dõi</h4>
+                <div class="followed-mangas-grid">
+                    ${followedMangasHtml}
+                </div>
             </div>
         `;
     }

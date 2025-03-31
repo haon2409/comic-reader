@@ -559,7 +559,138 @@ body {
 
 /* Followed mangas section */
 .followed-mangas {
-    margin-top: 20px;
+    margin-top: 20px 0;
+    padding: 0 10px;
+}
+
+.followed-mangas h4 {
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+}
+
+/* Grid layout for followed manga cards */
+.followed-mangas-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    padding-bottom: 20px;
+}
+
+/* Individual manga card */
+.followed-manga-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--apple-surface);
+    backdrop-filter: var(--apple-blur);
+    -webkit-backdrop-filter: var(--apple-blur);
+    border-radius: 13px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.followed-manga-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Thumbnail styling */
+.followed-manga-thumbnail {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 15px;
+    transition: transform 0.3s ease;
+}
+
+.followed-manga-card:hover .followed-manga-thumbnail {
+    transform: scale(1.05);
+}
+
+/* Manga info styling */
+.followed-manga-info {
+    flex-grow: 1;
+    color: #fff;
+}
+
+.followed-manga-title {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--apple-primary);
+    text-decoration: none;
+    margin-bottom: 5px;
+    transition: color 0.2s ease;
+}
+
+.followed-manga-title:hover {
+    color: #5cdbff;
+}
+
+.followed-manga-info p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Unfollow button styling */
+.followed-manga-card .unfollow-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #ff4d4f;
+    font-size: 1rem;
+    padding: 5px;
+    transition: all 0.2s ease;
+}
+
+.followed-manga-card .unfollow-btn:hover {
+    color: #ff7875;
+    transform: scale(1.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .followed-mangas-grid {
+        grid-template-columns: 1fr; /* 1 cột trên điện thoại */
+        gap: 15px;
+    }
+
+    .followed-manga-card {
+        padding: 10px;
+    }
+
+    .followed-manga-thumbnail {
+        width: 60px;
+        height: 90px;
+        margin-right: 10px;
+    }
+
+    .followed-manga-title {
+        font-size: 1rem;
+    }
+
+    .followed-manga-info p {
+        font-size: 0.85rem;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .followed-mangas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 2 cột trên iPad nếu đủ chỗ */
+    }
+}
+
+@media (min-width: 1025px) {
+    .followed-mangas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* 3-4 cột trên desktop */
+    }
 }
 
 .followed-manga-item {
