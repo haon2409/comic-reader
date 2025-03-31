@@ -97,6 +97,9 @@ body {
 #chapter-navigation button:hover:not(:disabled) {
     background: var(--apple-primary);
 }
+#chapter-count {
+    text-align: center;
+}
 
 .dropdown-menu {
     background: var(--apple-surface);
@@ -223,8 +226,8 @@ body {
 
 /* Vertical navigation layout (for desktop/landscape) */
 #chapter-navigation.nav-vertical {
-    right: 20px;
-    bottom: 20px;
+    right: 0;
+    bottom: 0;
     left: auto;
     top: auto;
     flex-direction: column;
@@ -240,7 +243,7 @@ body {
 }
 
 #chapter-navigation.nav-vertical .dropdown {
-    width: 100%;
+    /* width: 100%; */
 }
 
 #chapter-navigation.nav-vertical #toggle-nav-position {
@@ -340,6 +343,10 @@ body {
     #chapter-navigation:not(.nav-vertical):not(.nav-horizontal) ~ #manga-content {
         padding-bottom: 60px;
     }
+    #search-form {
+        margin-right: 0 !important;
+        margin-top: 10px;
+    }
 }
 
 /* Dropdown menu for chapters */
@@ -396,6 +403,12 @@ body {
     font-size: 3rem;
     margin-bottom: 20px;
     color: var(--bs-secondary);
+}
+
+.empty-state p {
+    word-wrap: break-word; /* Ngắt từ khi vượt quá chiều rộng */
+    overflow-wrap: break-word; /* Hỗ trợ thêm cho các trình duyệt mới */
+    white-space: normal; /* Cho phép xuống dòng tự nhiên */
 }
 
 /* Smooth transition for reading mode toggle */

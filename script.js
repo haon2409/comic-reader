@@ -365,7 +365,7 @@ async function fetchChapterContent(slug, chapterId) {
         // Update page title with chapter information
         if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
             const chapter = chapters[currentChapterIndex];
-            document.title = `Chapter ${chapter.number} - ${mangaTitle.textContent}`;
+            document.title = `Chap ${chapter.number} - ${mangaTitle.textContent}`;
         }
     } catch (error) {
         console.error("Error fetching chapter content:", error);
@@ -445,10 +445,10 @@ function populateChapterDropdown() {
         if (currentChapterIndex !== -1) {
             const currentChapter = chapters[currentChapterIndex];
             document.getElementById("chapterDropdown").textContent =
-                `Chapter ${currentChapter.number}`;
+                `Chap ${currentChapter.number}`;
         } else {
             document.getElementById("chapterDropdown").textContent =
-                "Chapter Selection";
+                "Chap Selection";
         }
 
         // Add chapters to dropdown in reverse order (newest first)
@@ -528,7 +528,7 @@ function navigateToChapter(chapterId) {
     }
 }
 
-// Update navigation button states and text based on current chapter
+// Trong hàm updateNavigation
 function updateNavigation() {
     if (currentChapterIndex > 0) {
         prevChapterBtn.disabled = false;
@@ -562,6 +562,16 @@ function updateNavigation() {
         document.title = `Chapter ${chapter.number} - ${mangaTitle.textContent}`;
     } else {
         document.title = "Manga Reader";
+    }
+
+    // Cập nhật tổng số chapter
+    const chapterCountElement = document.getElementById("chapter-count");
+    if (chapterCountElement) {
+        if (chapters.length > 0) {
+            chapterCountElement.textContent = `${chapters.length}`;
+        } else {
+            chapterCountElement.textContent = "No chapters available";
+        }
     }
 }
 
