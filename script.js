@@ -22,7 +22,8 @@ const chapterNavigation = document.getElementById("chapter-navigation");
 function getBasePath() {
     const path = window.location.pathname;
     const segments = path.split("/").filter((segment) => segment.length > 0);
-
+    console.log("segments: ", segments);
+    console.log("segments[0]: ", segments[0]);
     // Check if we're on GitHub Pages with /manga-reader/
     if (segments[0] === "manga-reader") {
         return "/manga-reader/";
