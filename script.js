@@ -80,6 +80,19 @@ document.addEventListener("touchstart", function (e) {
     window.touchStartTime = Date.now();
 });
 
+document.addEventListener(
+    "touchmove",
+    function (e) {
+        if (
+            window.touchStartX < 20 ||
+            window.touchStartX > window.innerWidth - 20
+        ) {
+            e.preventDefault(); // Chặn back gesture của iOS (chỉ hoạt động trong WebView hoặc một số trường hợp)
+        }
+    },
+    { passive: false },
+);
+
 document.addEventListener("touchend", function (e) {
     let touchEndX = e.changedTouches[0].clientX;
     let deltaX = touchEndX - window.touchStartX;
