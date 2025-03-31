@@ -541,6 +541,8 @@ body {
 /* Follow button styling */
 .follow-btn {
     transition: all 0.2s ease;
+    position: absolute;
+    right: 1rem;
 }
 
 .follow-btn:hover {
