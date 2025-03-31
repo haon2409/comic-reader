@@ -85,6 +85,8 @@ body {
     border: none !important;
     border-radius: 13px;
     padding: 0.5rem !important;
+    display: flex;
+    align-items: center;
 }
 
 #chapter-navigation button {
@@ -125,6 +127,7 @@ body {
 .manga-page {
     border-radius: 13px;
     transition: all 0.3s ease;
+    touch-action: pinch-zoom pan-y; /* Đảm bảo zoom/scroll trên cảm ứng */
 }
 
 /* Manga display container */
@@ -271,7 +274,6 @@ body {
 #chapter-navigation.nav-horizontal button {
     flex: 0 0 auto;
     border-radius: 15px;
-    /* padding: 4px 12px; */
     min-width: 70px;
     padding: 4px;
 }
@@ -480,6 +482,58 @@ body {
     border-bottom-left-radius: 13px;
     padding: 8px; /* Added padding for the thumbnail */
 }
+
+/* Warmth slider styling */
+.warmth-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.warmth-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100px;
+    height: 6px;
+    background: #ffffff; /* Màu trắng mặc định (trạng thái gốc) */
+    border-radius: 5px;
+    outline: none;
+    transition: background 0.2s ease;
+}
+
+.warmth-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--apple-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.warmth-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--apple-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.warmth-slider:hover::-webkit-slider-thumb,
+.warmth-slider:hover::-moz-range-thumb {
+    transform: scale(1.2);
+}
+
+.warmth-slider::-webkit-slider-thumb:hover {
+    background: #5cdbff;
+}
+
+.warmth-slider::-moz-range-thumb:hover {
+    background: #5cdbff;
+}
+
 .highlight-text {
-    color:#5cdbff;
+    color: #5cdbff;
 }

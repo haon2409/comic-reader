@@ -16,6 +16,7 @@ const nextChapterBtn = document.getElementById("next-chapter");
 const chapterList = document.getElementById("chapter-list");
 const toggleNavPositionBtn = document.getElementById("toggle-nav-position");
 const chapterNavigation = document.getElementById("chapter-navigation");
+const warmthSlider = document.getElementById("warmth-slider");
 
 // Initialize the application when the DOM is fully loaded
 // Get base path for the application
@@ -69,6 +70,9 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
         showEmptyState();
     }
+
+    // Setup warmth slider
+    setupWarmthSlider();
 });
 
 // Parse URL parameters to extract slug and chapter_id
@@ -204,6 +208,9 @@ async function loadMangaContent(slug, chapterId) {
 
         // Update navigation buttons
         updateNavigation();
+
+        // Apply warmth filter after content is loaded
+        applyWarmthFromStorage();
     } catch (error) {
         console.error("Error loading manga content:", error);
         showErrorMessage(
@@ -384,8 +391,6 @@ function displayMangaPages(pages) {
     mangaContent.innerHTML = "";
 
     if (Array.isArray(pages) && pages.length > 0) {
-        // Removed chapter information display from top of page
-
         // Create container for pages
         const pagesContainer = document.createElement("div");
         pagesContainer.className = "manga-pages-container";
@@ -421,8 +426,6 @@ function displayMangaPages(pages) {
             pageElement.appendChild(img);
             pageElement.appendChild(pageNumber);
             pagesContainer.appendChild(pageElement);
-
-            // Removed page number update - not needed anymore
         });
 
         // Show the content container
@@ -736,6 +739,9 @@ async function loadLatestChapter(slug) {
 
             // Update navigation buttons
             updateNavigation();
+
+            // Apply warmth filter after content is loaded
+            applyWarmthFromStorage();
         } else {
             throw new Error("No chapters found for this manga");
         }
@@ -896,4 +902,60 @@ function handleMangaClick(slug) {
             console.error("Error fetching manga info:", error);
             window.location.href = `./?slug=${slug}`;
         });
+}
+
+// Warmth slider functionality
+function setupWarmthSlider() {
+    // Load saved warmth value from localStorage
+    const savedWarmth = localStorage.getItem("warmthValue");
+    if (savedWarmth !== null) {
+        warmthSlider.value = savedWarmth;
+    }
+
+    // Apply warmth when slider changes
+    warmthSlider.addEventListener("input", function () {
+        const warmthValue = warmthSlider.value;
+        applyWarmth(warmthValue);
+        localStorage.setItem("warmthValue", warmthValue);
+    });
+}
+
+function applyWarmth(warmthValue) {
+    const mangaPages = document.querySelectorAll(".manga-page");
+    const sepia = warmthValue * 1.0; // Tăng lên 100% để có tông vàng-nâu đậm
+    const brightness = 100 - warmthValue * 0.15; // Giảm sáng nhẹ 15% để giữ chi tiết
+    const hueRotate = warmthValue * 0.2; // Tăng nhẹ đến 20deg để nghiêng về vàng, tránh xanh
+    const contrast = 100 - warmthValue * 0.1; // Giảm contrast nhẹ 10% để tạo cảm giác cũ
+
+    // Tính màu nền từ trắng (#ffffff) đến vàng giấy cũ (#d4a017)
+    const red = Math.round(255 - (255 - 212) * (warmthValue / 100)); // Từ 255 xuống 212
+    const green = Math.round(255 - (255 - 160) * (warmthValue / 100)); // Từ 255 xuống 160
+    const blue = Math.round(255 - (255 - 23) * (warmthValue / 100)); // Từ 255 xuống 23
+    warmthSlider.style.background = `rgb(${red}, ${green}, ${blue})`;
+
+    mangaPages.forEach((page) => {
+        page.style.filter = `sepia(${sepia}%) brightness(${brightness}%) hue-rotate(${hueRotate}deg) contrast(${contrast}%)`;
+    });
+}
+
+function applyWarmthFromStorage() {
+    const savedWarmth = localStorage.getItem("warmthValue");
+    if (savedWarmth !== null) {
+        warmthSlider.value = savedWarmth;
+        applyWarmth(savedWarmth);
+    }
+}
+
+function setupWarmthSlider() {
+    const savedWarmth = localStorage.getItem("warmthValue");
+    if (savedWarmth !== null) {
+        warmthSlider.value = savedWarmth;
+        applyWarmth(savedWarmth); // Áp dụng cả màu khi khởi tạo
+    }
+
+    warmthSlider.addEventListener("input", function () {
+        const warmthValue = warmthSlider.value;
+        applyWarmth(warmthValue);
+        localStorage.setItem("warmthValue", warmthValue);
+    });
 }

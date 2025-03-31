@@ -53,11 +53,9 @@
             <!-- Initial info display -->
             <div id="manga-info" class="mb-4">
                 <h1 id="manga-title" class="mb-3"></h1>
-                <!-- Removed debug parameter display -->
             </div>
 
-            <!-- Chapter navigation - Repositioned based on screen size -->
-            <!-- Chapter navigation - Repositioned based on screen size -->
+            <!-- Chapter navigation -->
             <div id="chapter-navigation" class="shadow">
                 <button
                     class="btn btn-sm btn-outline-info ms-1"
@@ -91,7 +89,6 @@
                         <!-- Chapter list will be populated here -->
                     </ul>
                 </div>
-                <!-- Thêm phần tử hiển thị tổng số chapter -->
                 <div
                     id="chapter-count"
                     class="chapter-count text-muted small mt-1"
@@ -105,6 +102,20 @@
                 >
                     <i class="fas fa-arrow-right"></i>
                 </button>
+                <!-- Thanh trượt điều chỉnh độ ấm -->
+                <div class="warmth-control mx-1">
+                    <label for="warmth-slider" class="small text-muted"
+                        ><i class="fas fa-sun"></i
+                    ></label>
+                    <input
+                        type="range"
+                        id="warmth-slider"
+                        min="0"
+                        max="100"
+                        value="0"
+                        class="warmth-slider"
+                    />
+                </div>
             </div>
 
             <!-- Loading indicator -->
