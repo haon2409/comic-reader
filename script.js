@@ -398,10 +398,6 @@ function displayMangaPages(pages) {
 function populateChapterDropdown() {
     // Clear previous items
     chapterList.innerHTML = '';
-    
-    // Hide navigation if no chapters
-    document.getElementById('chapter-navigation').style.display = 
-        (chapters && chapters.length > 0) ? 'flex' : 'none';
 
     if (chapters && chapters.length > 0) {
         // Update the dropdown button text to show the currently selected chapter
@@ -533,7 +529,6 @@ function showErrorMessage(message) {
 function showEmptyState(message = 'No manga content to display') {
     loading.style.display = 'none';
     mangaContent.style.display = 'block';
-    // Hide chapter navigation when showing empty state
     document.getElementById('chapter-navigation').style.display = 'none';
     mangaContent.innerHTML = `
         <div class="empty-state">
