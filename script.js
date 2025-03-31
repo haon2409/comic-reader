@@ -584,7 +584,7 @@ function showEmptyState(message = "No manga content to display") {
             <h3>Welcome to Manga Reader</h3>
             <p>${message}</p>
             <p>Enter a valid manga URL to begin reading.</p>
-            <p>Example: ?slug=one-piece&chapter_id=123456</p>
+            <p><a href="./?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e" target="_blank">Example: ?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e</a></p>
         </div>
     `;
 }
