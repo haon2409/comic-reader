@@ -75,6 +75,32 @@ document.addEventListener("DOMContentLoaded", function () {
     setupWarmthSlider();
 });
 
+document.addEventListener("touchstart", function (e) {
+    window.touchStartX = e.touches[0].clientX;
+    window.touchStartTime = Date.now();
+});
+
+document.addEventListener("touchend", function (e) {
+    let touchEndX = e.changedTouches[0].clientX;
+    let deltaX = touchEndX - window.touchStartX;
+    let duration = Date.now() - window.touchStartTime;
+
+    // Nếu vuốt nhanh và xuất phát từ cạnh
+    if (window.touchStartX < 20 && deltaX > 50 && duration < 500) {
+        console.log("Quẹt từ cạnh trái!");
+        prevChapterBtn.click();
+        // Xử lý quẹt từ trái (mở menu, chuyển trang, v.v.)
+    } else if (
+        window.touchStartX > window.innerWidth - 20 &&
+        deltaX < -50 &&
+        duration < 500
+    ) {
+        console.log("Quẹt từ cạnh phải!");
+        // Xử lý quẹt từ phải
+        nextChapterBtn.click();
+    }
+});
+
 // Parse URL parameters to extract slug and chapter_id
 function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
