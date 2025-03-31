@@ -99,6 +99,7 @@ body {
 }
 #chapter-count {
     text-align: center;
+    margin-top: 0 !important;
 }
 
 .dropdown-menu {
@@ -270,7 +271,9 @@ body {
 #chapter-navigation.nav-horizontal button {
     flex: 0 0 auto;
     border-radius: 15px;
-    padding: 4px 12px;
+    /* padding: 4px 12px; */
+    min-width: 70px;
+    padding: 4px;
 }
 
 #chapter-navigation.nav-horizontal .dropdown {
