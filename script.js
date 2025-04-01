@@ -4,7 +4,8 @@ let currentChapterId = "";
 let chapters = [];
 let currentChapterIndex = -1;
 let isVerticalNav = true; // Default to vertical navigation (for desktop/landscape)
-let readChapters = []; // Array to store IDs of chapters that have been read
+let readChapters = {};
+let isNewest = false; // Biến mới để kiểm tra tham số newest
 let followedMangas = []; // Danh sách truyện theo dõi
 
 // DOM elements
@@ -33,16 +34,15 @@ function getBasePath() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Set correct base path for navbar-brand
     const navbarBrand = document.querySelector(".navbar-brand");
     if (navbarBrand) {
         navbarBrand.href = getBasePath();
     }
 
-    // Parse URL parameters
-    parseUrlParameters();
+    loadFollowedMangas(); // Tải danh sách truyện theo dõi trước
+    loadReadHistory(); // Tải lịch sử đọc trước
+    parseUrlParameters(); // Sau đó mới parse URL
 
-    // Setup search form
     const searchForm = document.getElementById("search-form");
     if (searchForm) {
         searchForm.addEventListener("submit", function (e) {
@@ -56,25 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Set up event listeners
     setupEventListeners();
-
-    // Load read history from localStorage
-    loadReadHistory();
-
-    // Load followed mangas from localStorage
-    loadFollowedMangas();
-
-    // Load manga content if parameters are present
-    if (currentSlug && currentChapterId) {
-        loadMangaContent(currentSlug, currentChapterId);
-    } else if (currentSlug) {
-        loadLatestChapter(currentSlug);
-    } else {
-        showEmptyState();
-    }
-
-    // Setup warmth slider
     setupWarmthSlider();
 });
 
@@ -120,7 +102,8 @@ document.addEventListener("touchend", function (e) {
 function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSlug = urlParams.get("slug") || "";
-    currentChapterId = urlParams.get("chapter_id") || "";
+    const requestedChapterId = urlParams.get("chapter_id") || "";
+    isNewest = urlParams.get("newest") === "true";
 
     if (currentSlug) {
         const formattedSlug = currentSlug
@@ -130,9 +113,8 @@ function parseUrlParameters() {
         mangaTitle.textContent = formattedSlug;
         const followBtn = document.getElementById("follow-manga-btn");
         followBtn.style.display = "inline-block";
-        followBtn.setAttribute("data-slug", currentSlug); // Thêm data-slug
+        followBtn.setAttribute("data-slug", currentSlug);
 
-        // Check if this manga is followed
         const isFollowed = followedMangas.some((m) => m.slug === currentSlug);
         if (isFollowed) {
             followBtn.classList.add("followed");
@@ -141,8 +123,11 @@ function parseUrlParameters() {
             followBtn.classList.remove("followed");
             followBtn.innerHTML = `<i class="fas fa-star me-1"></i> Theo dõi`;
         }
+        loadMangaContent(currentSlug, requestedChapterId);
     } else {
+        console.log("No slug found, showing empty state"); // Thêm log để kiểm tra
         document.getElementById("follow-manga-btn").style.display = "none";
+        showEmptyState();
     }
 }
 
@@ -273,46 +258,63 @@ function setupEventListeners() {
     });
 }
 
-async function loadMangaContent(slug, chapterId) {
+async function loadMangaContent(slug, requestedChapterId) {
+    const urlParams = new URLSearchParams(window.location.search);
+
     try {
-        // Show loading indicator and navigation
         loading.style.display = "block";
         mangaContent.style.display = "none";
         errorMessage.style.display = "none";
         document.getElementById("chapter-navigation").style.display = "flex";
 
+        currentSlug = slug;
+
         try {
-            // Fetch manga information first and wait for it to complete
             await fetchMangaInfo(slug);
 
-            // Set current chapter ID and find its index
-            currentChapterId =
-                chapterId || (chapters.length > 0 ? chapters[0].id : null);
+            if (!chapters || chapters.length === 0) {
+                throw new Error("No chapters available");
+            }
+
+            if (isNewest) {
+                currentChapterId = chapters[chapters.length - 1].id;
+            } else {
+                if (requestedChapterId) {
+                    const validChapter = chapters.find(
+                        (chapter) => chapter.id === requestedChapterId,
+                    );
+                    currentChapterId = validChapter
+                        ? requestedChapterId
+                        : chapters[0].id;
+                } else {
+                    currentChapterId = chapters[0].id;
+                }
+            }
+
             currentChapterIndex = chapters.findIndex(
                 (chapter) => chapter.id === currentChapterId,
             );
 
-            // Validate chapter exists
-            if (!currentChapterId || currentChapterIndex === -1) {
-                if (chapters.length > 0) {
-                    currentChapterIndex = 0;
-                    currentChapterId = chapters[0].id;
-                } else {
-                    throw new Error("No chapters available");
-                }
+            const url = new URL(window.location.href);
+            url.searchParams.set("slug", slug);
+            url.searchParams.set("chapter_id", currentChapterId);
+            if (urlParams.get("newest") === "true" && isNewest) {
+                url.searchParams.set("newest", "true");
+            } else {
+                url.searchParams.delete("newest");
             }
+            window.history.replaceState({}, "", url.toString());
 
-            // Now fetch chapter content with confirmed chapter ID
             await fetchChapterContent(slug, currentChapterId);
+
+            isNewest = false; // Đặt lại sau lần tải đầu tiên
         } catch (error) {
             console.error("Error in loadMangaContent:", error);
             throw error;
         }
 
-        // Update navigation buttons
         updateNavigation();
 
-        // Update follow button state after manga info is loaded
         const followBtn = document.getElementById("follow-manga-btn");
         const isFollowed = followedMangas.some((m) => m.slug === currentSlug);
         if (isFollowed) {
@@ -323,7 +325,6 @@ async function loadMangaContent(slug, chapterId) {
             followBtn.innerHTML = `<i class="fas fa-star me-1"></i> Theo dõi`;
         }
 
-        // Apply warmth filter after content is loaded
         applyWarmthFromStorage();
     } catch (error) {
         console.error("Error loading manga content:", error);
@@ -332,95 +333,53 @@ async function loadMangaContent(slug, chapterId) {
                 "Unable to load manga content. Please try again later.",
         );
     } finally {
-        // Hide loading indicator
         loading.style.display = "none";
     }
 }
 
 // Fetch manga information (title, chapters list, etc.)
 async function fetchMangaInfo(slug) {
+    const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${encodeURIComponent(slug)}`;
+    console.log(`Fetching manga info from: ${apiUrl}`);
+
     try {
-        if (!slug) {
-            throw new Error("Manga slug is missing");
-        }
-
-        // Use the actual API endpoint for manga information
-        const apiUrl = `https://otruyenapi.com/v1/api/truyen-tranh/${encodeURIComponent(slug)}`;
-
-        console.log(`Fetching manga info from: ${apiUrl}`);
-
-        // Fetch the manga data with headers to help with API access
         const response = await fetch(apiUrl, {
             method: "GET",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
                 "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             },
         });
 
         if (!response.ok) {
-            throw new Error(
-                `API request failed with status ${response.status}`,
-            );
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
-
-        // Check if data is valid and has expected structure
-        if (
-            !data ||
-            !data.data ||
-            !data.data.item ||
-            !data.data.item.chapters
-        ) {
+        if (!data || !data.data || !data.data.item) {
             throw new Error("Invalid API response structure");
         }
 
-        // Update manga title if available
-        if (data.data.item.name) {
-            mangaTitle.textContent = data.data.item.name;
-        }
+        mangaTitle.textContent = data.data.item.name || "Unknown Manga";
+        chapters = data.data.item.chapters[0].server_data.map((chapter) => ({
+            id: chapter.chapter_api_data.split("/").pop(),
+            number: chapter.chapter_name,
+            title: chapter.chapter_title || "",
+        }));
 
-        // Extract chapters from the API response
-        if (!data?.data?.item?.chapters?.[0]?.server_data) {
-            throw new Error("Invalid chapter data structure");
-        }
-
-        const chaptersData = data.data.item.chapters[0].server_data;
-
-        // Transform the chapter data into our format
-        chapters = chaptersData.map((chapter) => {
-            if (!chapter) return null;
-            // Extract chapter_id from chapter_api_data
-            const chapterApiUrl = chapter.chapter_api_data;
-            const chapterId = chapterApiUrl.split("/").pop();
-
-            return {
-                id: chapterId,
-                number: parseInt(chapter.chapter_name) || 0,
-                title: chapter.chapter_title || "",
-                filename: chapter.filename || "",
-            };
-        });
-
-        // Sort chapters in ascending order (chapter 1, 2, 3...)
-        chapters.sort((a, b) => a.number - b.number);
-
-        // Find the current chapter index
         currentChapterIndex = chapters.findIndex(
             (chapter) => chapter.id === currentChapterId,
         );
-        console.log(
-            `Current chapter index: ${currentChapterIndex} for chapter ID: ${currentChapterId}`,
-        );
+        if (currentChapterIndex === -1 && currentChapterId) {
+            currentChapterIndex = 0;
+        }
 
-        // Populate chapter dropdown
         populateChapterDropdown();
     } catch (error) {
         console.error("Error fetching manga info:", error);
-        throw new Error("Failed to fetch manga information: " + error.message);
+        throw error; // Ném lỗi lên để hàm gọi xử lý (như loadLatestChapter)
     }
 }
 
@@ -467,6 +426,7 @@ async function fetchMangaDetails(slug) {
             updatedAt: manga.updatedAt
                 ? new Date(manga.updatedAt).toLocaleDateString()
                 : "N/A",
+            chapters: manga.chapters || [],
         };
     } catch (error) {
         console.error(`Error fetching details for slug ${slug}:`, error);
@@ -644,7 +604,7 @@ function populateChapterDropdown() {
             link.textContent = chapterText;
 
             // Mark chapter as read if in read history
-            if (readChapters.includes(chapter.id)) {
+            if (readChapters[currentSlug]?.includes(chapter.id)) {
                 link.classList.add("read");
             }
 
@@ -681,19 +641,13 @@ function navigateToChapter(chapterId) {
         return;
     }
     if (chapterId !== currentChapterId) {
-        // Update the URL with new chapter_id
         const url = new URL(window.location.href);
-
-        // Update the chapter_id param
+        url.searchParams.set("slug", currentSlug);
         url.searchParams.set("chapter_id", chapterId);
-
-        // Update the browser history and URL
+        url.searchParams.delete("newest"); // Xóa newest khi chuyển chương
         window.history.pushState({}, "", url.toString());
 
-        // Update the current chapter id
         currentChapterId = chapterId;
-
-        // Load the new chapter content
         console.log(
             `Loading new chapter content for slug: ${currentSlug}, chapterId: ${currentChapterId}`,
         );
@@ -728,10 +682,12 @@ function updateNavigation() {
         nextChapterBtn.title = `No Next Chapter`;
     }
 
-    // Save current chapter ID to read history
-    saveReadChapter(currentChapterId);
+    // Gọi saveReadChapter lưu chương hiện tại
+    if (currentChapterId) {
+        saveReadChapter(currentChapterId);
+    }
 
-    // Update page title
+    // Cập nhật tiêu đề trang
     if (currentChapterIndex !== -1 && chapters[currentChapterIndex]) {
         const chapter = chapters[currentChapterIndex];
         document.title = `Chapter ${chapter.number} - ${mangaTitle.textContent}`;
@@ -755,80 +711,6 @@ function showErrorMessage(message) {
     errorMessage.style.display = "block";
     document.getElementById("error-text").textContent = message;
     mangaContent.style.display = "none";
-}
-
-async function showEmptyState(message = "No manga content to display") {
-    loading.style.display = "none";
-    mangaContent.style.display = "block";
-    document.getElementById("chapter-navigation").style.display = "none";
-    document.getElementById("follow-manga-btn").style.display = "none";
-
-    let emptyStateHtml = "";
-
-    // Chỉ hiển thị "Welcome to Manga Reader" nếu không có truyện theo dõi
-    if (followedMangas.length === 0) {
-        emptyStateHtml = `
-            <div class="empty-state">
-                <i class="fas fa-book"></i>
-                <h3>Welcome to Manga Reader</h3>
-                <p>${message}</p>
-                <p>Enter a valid manga URL to begin reading.</p>
-                <p><a href="./?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e" target="_blank">Example: ?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e</a></p>
-            </div>
-        `;
-    }
-
-    // Hiển thị danh sách "Truyện theo dõi" nếu có
-    if (followedMangas.length > 0) {
-        // Show loading indicator while fetching data
-        mangaContent.innerHTML = `
-            <div class="text-center my-5">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading followed mangas...</span>
-                </div>
-            </div>
-        `;
-
-        // Fetch details for all followed mangas concurrently
-        const mangaDetailsPromises = followedMangas.map((manga) =>
-            fetchMangaDetails(manga.slug),
-        );
-        const mangaDetails = await Promise.all(mangaDetailsPromises);
-
-        const followedMangasHtml = mangaDetails
-            .map((manga) => {
-                const url = followedMangas.find((m) => m.slug === manga.slug)
-                    ?.chapterId
-                    ? `./?slug=${manga.slug}&chapter_id=${followedMangas.find((m) => m.slug === manga.slug).chapterId}`
-                    : `./?slug=${manga.slug}`;
-                return `
-                <div class="followed-manga-card">
-                    <img src="${manga.thumbnail}" alt="${manga.name}" class="followed-manga-thumbnail" onerror="this.src='https://via.placeholder.com/80x120?text=Error';">
-                    <div class="followed-manga-info">
-                        <a href="${url}" class="followed-manga-title">${manga.name}</a>
-                        <p class="small text-muted mb-1">Tác giả: <span class="highlight-text">${manga.author}</span></p>
-                        <p class="small text-muted mb-1">Trạng thái: <span class="highlight-text">${manga.status}</span></p>
-                        <p class="small text-muted mb-0">Chương: <span class="highlight-text">${manga.chapterCount}</span> | Cập nhật: <span class="highlight-text">${manga.updatedAt}</span></p>
-                    </div>
-                    <button class="unfollow-btn" data-slug="${manga.slug}" title="Bỏ theo dõi">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `;
-            })
-            .join("");
-
-        emptyStateHtml = `
-            <div class="followed-mangas">
-                <h4 class="mb-4">Truyện theo dõi</h4>
-                <div class="followed-mangas-grid">
-                    ${followedMangasHtml}
-                </div>
-            </div>
-        `;
-    }
-
-    mangaContent.innerHTML = emptyStateHtml;
 }
 
 // Toggle the navigation bar layout between vertical (desktop) and horizontal (mobile)
@@ -915,29 +797,115 @@ function updateDropdownPosition() {
     }
 }
 
-// Load the read history from localStorage
 function loadReadHistory() {
     const history = localStorage.getItem("readChapters");
     if (history) {
         try {
             readChapters = JSON.parse(history);
+            // Không cần xử lý dữ liệu cũ, giả sử luôn là đối tượng
+            if (typeof readChapters !== "object" || readChapters === null) {
+                readChapters = {};
+            }
         } catch (error) {
             console.error("Error parsing read history:", error);
-            readChapters = [];
+            readChapters = {};
         }
     }
 }
 
-// Save a chapter to read history
-function saveReadChapter(chapterId) {
-    if (!chapterId) return;
+async function showEmptyState(message = "No manga content to display") {
+    loading.style.display = "none";
+    mangaContent.style.display = "block";
+    document.getElementById("chapter-navigation").style.display = "none";
+    document.getElementById("follow-manga-btn").style.display = "none";
 
-    // Add the chapter ID to read history if not already present
-    if (!readChapters.includes(chapterId)) {
-        readChapters.push(chapterId);
-        // Save updated history to localStorage
-        localStorage.setItem("readChapters", JSON.stringify(readChapters));
+    let emptyStateHtml = "";
+
+    if (followedMangas.length === 0) {
+        emptyStateHtml = `
+            <div class="empty-state">
+                <i class="fas fa-book"></i>
+                <h3>Welcome to Manga Reader</h3>
+                <p>${message}</p>
+                <p>Enter a valid manga URL to begin reading.</p>
+                <p><a href="./?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e" target="_blank">Example: ?slug=dao-hai-tac&chapter_id=65901d64ac52820f564b373e</a></p>
+            </div>
+        `;
     }
+
+    if (followedMangas.length > 0) {
+        mangaContent.innerHTML = `
+            <div class="text-center my-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading followed mangas...</span>
+                </div>
+            </div>
+        `;
+
+        const mangaDetailsPromises = followedMangas.map((manga) =>
+            fetchMangaDetails(manga.slug),
+        );
+        const mangaDetails = await Promise.all(mangaDetailsPromises);
+
+        const followedMangasHtml = mangaDetails
+            .map((manga, index) => {
+                const latestChapterId = followedMangas.find(
+                    (m) => m.slug === manga.slug,
+                )?.chapterId;
+                const url = latestChapterId
+                    ? `./?slug=${manga.slug}&chapter_id=${latestChapterId}`
+                    : `./?slug=${manga.slug}`;
+
+                // Lấy thông tin chapter từ API đã gọi trong fetchMangaDetails
+
+                const chapters = manga.chapters?.[0]?.server_data || [];
+
+                const chapterIndex = chapters.findIndex(
+                    (ch) =>
+                        ch.chapter_api_data.split("/").pop() ===
+                        latestChapterId,
+                );
+
+                const chapter =
+                    chapterIndex !== -1 ? chapters[chapterIndex] : null;
+
+                const chapterName =
+                    chapter?.chapter_name ||
+                    (chapterIndex !== -1 ? `${chapterIndex + 1}` : "");
+                const chapterTitle = chapter?.chapter_title || "";
+                const readingText = chapterName
+                    ? `Đang đọc: ${chapterName}${chapterTitle ? ` - ${chapterTitle}` : ""}`
+                    : "";
+
+                return `
+                <div class="followed-manga-card">
+                    <img src="${manga.thumbnail}" alt="${manga.name}" class="followed-manga-thumbnail" onerror="this.src='https://via.placeholder.com/80x120?text=Error';">
+                    <div class="followed-manga-info">
+                        <a href="${url}" class="followed-manga-title">${manga.name}</a>
+                        <p class="small text-muted mb-1">Tác giả: <span class="highlight-text">${manga.author}</span></p>
+                        <p class="small text-muted mb-1">Trạng thái: <span class="highlight-text">${manga.status}</span></p>
+                        <p class="small text-muted mb-1">Chương: <span class="highlight-text">${manga.chapterCount}</span> | Cập nhật: <span class="highlight-text">${manga.updatedAt}</span></p>
+                        <p class="small text-muted mb-0">${readingText}</p>
+                    </div>
+                    <button class="unfollow-btn" data-slug="${manga.slug}" title="Bỏ theo dõi">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            })
+            .join("");
+
+        emptyStateHtml = `
+            <div class="followed-mangas">
+                <h4 class="mb-4">Truyện theo dõi</h4>
+                <div class="followed-mangas-grid">
+                    ${followedMangasHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    mangaContent.innerHTML = emptyStateHtml;
 }
 
 // Load followed mangas from localStorage
@@ -946,10 +914,35 @@ function loadFollowedMangas() {
     if (followed) {
         try {
             followedMangas = JSON.parse(followed);
+            console.log("Loaded followed mangas:", followedMangas);
         } catch (error) {
             console.error("Error parsing followed mangas:", error);
             followedMangas = [];
         }
+    }
+}
+
+function saveReadChapter(chapterId) {
+    if (!chapterId || !currentSlug) return;
+
+    // Khởi tạo mảng cho slug nếu chưa có
+    if (!readChapters[currentSlug]) {
+        readChapters[currentSlug] = [];
+    }
+
+    // Thêm chapterId nếu chưa tồn tại
+    if (!readChapters[currentSlug].includes(chapterId)) {
+        readChapters[currentSlug].push(chapterId);
+        localStorage.setItem("readChapters", JSON.stringify(readChapters));
+    }
+
+    // Cập nhật chapterId mới nhất trong followedMangas
+    const mangaIndex = followedMangas.findIndex(
+        (manga) => manga.slug === currentSlug,
+    );
+    if (mangaIndex !== -1) {
+        followedMangas[mangaIndex].chapterId = chapterId;
+        saveFollowedMangas();
     }
 }
 
@@ -961,34 +954,24 @@ function saveFollowedMangas() {
 // Load the latest chapter when no chapter_id is specified
 async function loadLatestChapter(slug) {
     try {
-        // Show loading indicator
         loading.style.display = "block";
         mangaContent.style.display = "none";
         errorMessage.style.display = "none";
 
-        // Fetch manga info to get the list of chapters
+        currentSlug = slug;
         await fetchMangaInfo(slug);
 
-        // If chapters were loaded successfully
         if (chapters && chapters.length > 0) {
-            // Use the latest chapter
-            const latestChapter = chapters[chapters.length - 1];
+            currentChapterId = chapters[chapters.length - 1].id;
 
-            // Update the current chapter ID
-            currentChapterId = latestChapter.id;
-
-            // Update URL with the chapter ID
             const url = new URL(window.location.href);
+            url.searchParams.set("slug", slug);
             url.searchParams.set("chapter_id", currentChapterId);
+            url.searchParams.set("newest", "true");
             window.history.replaceState({}, "", url.toString());
 
-            // Load the chapter content
             await fetchChapterContent(slug, currentChapterId);
-
-            // Update navigation buttons
             updateNavigation();
-
-            // Apply warmth filter after content is loaded
             applyWarmthFromStorage();
         } else {
             throw new Error("No chapters found for this manga");
@@ -1000,7 +983,6 @@ async function loadLatestChapter(slug) {
                 "Unable to load manga content. Please try again later.",
         );
     } finally {
-        // Hide loading indicator
         loading.style.display = "none";
     }
 }
@@ -1201,18 +1183,4 @@ function applyWarmthFromStorage() {
         warmthSlider.value = savedWarmth;
         applyWarmth(savedWarmth);
     }
-}
-
-function setupWarmthSlider() {
-    const savedWarmth = localStorage.getItem("warmthValue");
-    if (savedWarmth !== null) {
-        warmthSlider.value = savedWarmth;
-        applyWarmth(savedWarmth); // Áp dụng cả màu khi khởi tạo
-    }
-
-    warmthSlider.addEventListener("input", function () {
-        const warmthValue = warmthSlider.value;
-        applyWarmth(warmthValue);
-        localStorage.setItem("warmthValue", warmthValue);
-    });
 }
