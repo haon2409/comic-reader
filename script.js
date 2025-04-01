@@ -136,23 +136,23 @@ document.addEventListener("touchend", function (e) {
 function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSlug = urlParams.get("slug") || "";
-    const requestedChapterId = urlParams.get("chapter_id") || "";
+    currentChapterId = urlParams.get("chapter_id") || ""; // Gán trực tiếp vào currentChapterId
     isNewest = urlParams.get("newest") === "true";
 
-    console.log("URL params:", { currentSlug, requestedChapterId, isNewest }); // Thêm log này
+    console.log("URL params:", { currentSlug, currentChapterId, isNewest }); // Log giữ nguyên
 
     if (currentSlug) {
         const formattedSlug = currentSlug
             .split("-")
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
-        elements.mangaTitle.textContent = formattedSlug;
+        elements.mangaTitle.textContent = formattedSlug; // Sửa lỗi cú pháp: gán formattedSlug
 
         elements.followMangaBtn.style.display = "inline-block";
         elements.followMangaBtn.setAttribute("data-slug", currentSlug);
 
         helpers.updateFollowButton(currentSlug);
-        loadMangaContent(currentSlug, requestedChapterId);
+        loadMangaContent(currentSlug); // Chỉ truyền slug
     } else {
         elements.followMangaBtn.style.display = "none";
         showEmptyState();
@@ -243,7 +243,7 @@ function setupEventListeners() {
     });
 }
 
-async function loadMangaContent(slug, requestedChapterId) {
+async function loadMangaContent(slug) {
     const urlParams = new URLSearchParams(window.location.search);
 
     try {
@@ -260,14 +260,11 @@ async function loadMangaContent(slug, requestedChapterId) {
             throw new Error("No chapters available");
         }
 
+        // Logic chọn chương trực tiếp với currentChapterId
         if (isNewest) {
             currentChapterId = chapters[chapters.length - 1].id;
-        } else {
-            currentChapterId =
-                requestedChapterId &&
-                chapters.some((chapter) => chapter.id === requestedChapterId)
-                    ? requestedChapterId
-                    : chapters[0].id;
+        } else if (!currentChapterId || !chapters.some((chapter) => chapter.id === currentChapterId)) {
+            currentChapterId = chapters[0].id; // Mặc định về chương đầu tiên nếu không hợp lệ
         }
 
         currentChapterIndex = chapters.findIndex(
@@ -851,7 +848,7 @@ async function loadLatestChapter(slug) {
         await fetchMangaInfo(slug);
 
         if (chapters && chapters.length > 0) {
-            currentChapterId = chapters[chapters.length - 1].id;
+            currentChapterId = chapters[chapters.length - 1].id; // Gán trực tiếp
 
             const url = new URL(window.location.href);
             url.searchParams.set("slug", slug);
