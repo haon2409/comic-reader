@@ -759,15 +759,15 @@ async function showEmptyState(message = "No manga content to display") {
                         ch.chapter_api_data.split("/").pop() ===
                         latestChapterId,
                 );
+                console.log("chapterIndex: ", chapterIndex);
+
                 const chapter =
                     chapterIndex !== -1 ? chapters[chapterIndex] : null;
 
-                const chapterName =
-                    chapter?.chapter_name ||
-                    (chapterIndex !== -1 ? `${chapterIndex + 1}` : "");
+                const chapterName = chapterIndex + 1;
                 const chapterTitle = chapter?.chapter_title || "";
                 const readingText = chapterName
-                    ? `Đang đọc: ${chapterName}${chapterTitle ? ` - ${chapterTitle}` : ""}`
+                    ? `Đang đọc: <span class="highlight-text">${chapterName}${chapterTitle ? ` - ${chapterTitle}` : ""}</span>`
                     : "";
 
                 return `
