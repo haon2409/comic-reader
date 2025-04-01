@@ -59,7 +59,7 @@
                     class="btn btn-sm btn-outline-info follow-btn"
                     style="display: none"
                 >
-                    <i class="fas fa-star me-1"></i> Theo dõi
+                    <i class="fas fa-star me-1"></i>
                 </button>
             </div>
 
@@ -72,6 +72,20 @@
                 >
                     <i class="fas fa-grip-vertical"></i>
                 </button>
+                <!-- Thanh trượt điều chỉnh độ ấm -->
+                <div class="warmth-control mx-1">
+                    <label for="warmth-slider" class="warmth-toggle small text-muted">
+                        <i class="fas fa-sun"></i>
+                    </label>
+                    <input
+                        type="range"
+                        id="warmth-slider"
+                        min="0"
+                        max="100"
+                        value="0"
+                        class="warmth-slider"
+                    />
+                </div>
                 <button
                     class="btn btn-sm btn-outline-secondary"
                     id="prev-chapter"
@@ -109,21 +123,7 @@
                     disabled
                 >
                     <i class="fas fa-arrow-right"></i>
-                </button>
-                <!-- Thanh trượt điều chỉnh độ ấm -->
-                <div class="warmth-control mx-1">
-                    <label for="warmth-slider" class="small text-muted"
-                        ><i class="fas fa-sun"></i
-                    ></label>
-                    <input
-                        type="range"
-                        id="warmth-slider"
-                        min="0"
-                        max="100"
-                        value="0"
-                        class="warmth-slider"
-                    />
-                </div>
+                </button>                
             </div>
 
             <!-- Loading indicator -->

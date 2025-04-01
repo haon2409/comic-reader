@@ -54,7 +54,9 @@ const helpers = {
 
         buttons.forEach((button) => {
             button.classList.toggle("followed", isFollowed);
-            button.innerHTML = `<i class="fas fa-star me-1"></i> ${isFollowed ? "Đã theo dõi" : "Theo dõi"}`;
+            button.innerHTML = isFollowed
+                ? '<i class="fas fa-star"></i>'  // Ngôi sao đầy vàng khi followed
+                : '<i class="far fa-star"></i>'; // Ngôi sao rỗng trắng khi chưa follow
         });
     },
 
@@ -239,6 +241,24 @@ function setupEventListeners() {
             if (manga) {
                 toggleFollowManga(slug, manga.title, manga.chapterId);
             }
+        }
+    });
+
+    // Sự kiện cho warmth toggle
+    const warmthToggle = document.querySelector(".warmth-toggle");
+    const warmthControl = document.querySelector(".warmth-control");
+
+    warmthToggle.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (!isVerticalNav) { // Chỉ hoạt động khi ở chế độ nav-horizontal
+            warmthControl.classList.toggle("show");
+        }
+    });
+
+    // Ẩn thanh trượt khi click ra ngoài
+    document.addEventListener("click", function (e) {
+        if (!isVerticalNav && !warmthControl.contains(e.target)) {
+            warmthControl.classList.remove("show");
         }
     });
 }
@@ -556,7 +576,7 @@ function populateChapterDropdown() {
     elements.chapterDropdown.textContent = `Chap ${chapters[displayIndex].number}`;
 
     // Add chapters to dropdown in reverse order (newest first)
-    [...chapters].reverse().forEach((chapter) => {
+    [...chapters].reverse().forEach((chapter, index) => {
         const listItem = document.createElement("li");
         const link = document.createElement("a");
         link.className = "dropdown-item";
@@ -574,6 +594,7 @@ function populateChapterDropdown() {
         if (chapter.id === currentChapterId) {
             link.classList.add("active");
             link.innerHTML = `<i class="fas fa-bookmark me-2"></i>${helpers.formatChapterText(chapter)}`;
+            link.dataset.selected = "true"; // Thêm thuộc tính để dễ xác định
         }
 
         // Add click handler
@@ -588,6 +609,14 @@ function populateChapterDropdown() {
 
     // Update dropdown position based on navigation style
     updateDropdownPosition();
+
+    // Thêm sự kiện để focus vào chapter hiện tại khi dropdown mở
+    elements.chapterDropdown.addEventListener("shown.bs.dropdown", () => {
+        const activeItem = elements.chapterList.querySelector(".dropdown-item.active");
+        if (activeItem) {
+            activeItem.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, { once: true }); // Chỉ thêm listener một lần để tránh trùng lặp
 }
 
 function navigateToChapter(chapterId) {
@@ -650,6 +679,14 @@ function toggleNavPosition() {
     localStorage.setItem("isVerticalNav", isVerticalNav.toString());
     updateNavPositionIcon();
     updateDropdownPosition();
+
+    // Cập nhật trạng thái warmth-control
+    const warmthControl = document.querySelector(".warmth-control");
+    if (isVerticalNav) {
+        warmthControl.classList.remove("show"); // Đảm bảo thanh trượt luôn hiển thị ở nav-vertical
+    } else {
+        warmthControl.classList.remove("show"); // Ẩn thanh trượt khi chuyển sang nav-horizontal
+    }
 }
 
 function loadNavPositionFromStorage() {
@@ -660,6 +697,12 @@ function loadNavPositionFromStorage() {
     applyNavPositionStyles();
     updateNavPositionIcon();
     updateDropdownPosition();
+
+    // Cập nhật trạng thái warmth-control khi load
+    const warmthControl = document.querySelector(".warmth-control");
+    if (!isVerticalNav) {
+        warmthControl.classList.remove("show"); // Ẩn thanh trượt ở nav-horizontal
+    }
 }
 
 function applyNavPositionStyles() {
@@ -759,7 +802,6 @@ async function showEmptyState(message = "No manga content to display") {
                         ch.chapter_api_data.split("/").pop() ===
                         latestChapterId,
                 );
-                console.log("chapterIndex: ", chapterIndex);
 
                 const chapter =
                     chapterIndex !== -1 ? chapters[chapterIndex] : null;
@@ -781,7 +823,7 @@ async function showEmptyState(message = "No manga content to display") {
                         <p class="small text-muted mb-0">${readingText}</p>
                     </div>
                     <button class="unfollow-btn" data-slug="${manga.slug}" title="Bỏ theo dõi">
-                        <i class="fas fa-trash"></i>
+                        <i class="fas fa-star"></i> <!-- Ngôi sao đầy vàng cho followed -->
                     </button>
                 </div>
             `;
@@ -911,56 +953,56 @@ async function handleSearchResults(keyword) {
 
         if (data.status === "success" && data.data?.items?.length > 0) {
             const resultsHtml = data.data.items
-                .map((manga) => {
-                    const thumbnail = manga.thumb_url
-                        ? `${data.data.APP_DOMAIN_CDN_IMAGE}/uploads/comics/${manga.thumb_url}`
-                        : "https://via.placeholder.com/200x300?text=No+Image";
+        .map((manga) => {
+            const thumbnail = manga.thumb_url
+                ? `${data.data.APP_DOMAIN_CDN_IMAGE}/uploads/comics/${manga.thumb_url}`
+                : "https://via.placeholder.com/200x300?text=No+Image";
 
-                    const date = manga.updatedAt
-                        ? new Date(manga.updatedAt).toLocaleDateString()
-                        : "N/A";
-                    const authors = Array.isArray(manga.author)
-                        ? manga.author.join(", ")
-                        : "Unknown";
-                    const chapterCount =
-                        manga.chapters?.[0]?.server_data?.length || 0;
-                    const isFollowed = followedMangas.some(
-                        (m) => m.slug === manga.slug,
-                    );
+            const date = manga.updatedAt
+                ? new Date(manga.updatedAt).toLocaleDateString()
+                : "N/A";
+            const authors = Array.isArray(manga.author)
+                ? manga.author.join(", ")
+                : "Unknown";
+            const chapterCount =
+                manga.chapters?.[0]?.server_data?.length || 0;
+            const isFollowed = followedMangas.some(
+                (m) => m.slug === manga.slug,
+            );
 
-                    return `
-                    <div class="card mb-3 search-result" style="max-width: 800px; margin: auto;">
-                        <div class="row g-0">
-                            <div class="col-md-3">
-                                <img src="${thumbnail}" class="img-fluid rounded-start" alt="${manga.name}" 
-                                    style="height: 200px; object-fit: cover;"
-                                    onerror="this.src='https://via.placeholder.com/200x300?text=Error+Loading+Image'">
+            return `
+            <div class="card mb-3 search-result" style="max-width: 800px; margin: auto;">
+                <div class="row g-0">
+                    <div class="col-md-3">
+                        <img src="${thumbnail}" class="img-fluid rounded-start" alt="${manga.name}" 
+                            style="height: 200px; object-fit: cover;"
+                            onerror="this.src='https://via.placeholder.com/200x300?text=Error+Loading+Image'">
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <h5 class="card-title me-2">
+                                    <a href="#" onclick="handleMangaClick('${manga.slug}'); return false;" class="text-decoration-none text-info">
+                                        ${manga.name}
+                                    </a>
+                                </h5>
+                                <button class="btn btn-sm btn-outline-info follow-btn ${isFollowed ? "followed" : ""}" data-slug="${manga.slug}" data-title="${manga.name}">
+                                    ${isFollowed ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>'}
+                                </button>
                             </div>
-                            <div class="col-md-9">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <h5 class="card-title me-2">
-                                            <a href="#" onclick="handleMangaClick('${manga.slug}'); return false;" class="text-decoration-none text-info">
-                                                ${manga.name}
-                                            </a>
-                                        </h5>
-                                        <button class="btn btn-sm btn-outline-info follow-btn ${isFollowed ? "followed" : ""}" data-slug="${manga.slug}" data-title="${manga.name}">
-                                            <i class="fas fa-star me-1"></i> ${isFollowed ? "Đã theo dõi" : "Theo dõi"}
-                                        </button>
-                                    </div>
-                                    <p class="card-text">
-                                        <small class="text-muted">Author: <span class="highlight-text">${authors}</span></small><br>
-                                        <small class="text-muted">Status: <span class="highlight-text">${manga.status || "Unknown"}</span></small><br>
-                                        <small class="text-muted">Chapters: <span class="highlight-text">${chapterCount}</span></small><br>
-                                        <small class="text-muted">Updated: <span class="highlight-text">${date}</span></small>
-                                    </p>
-                                </div>
-                            </div>
+                            <p class="card-text">
+                                <small class="text-muted">Author: <span class="highlight-text">${authors}</span></small><br>
+                                <small class="text-muted">Status: <span class="highlight-text">${manga.status || "Unknown"}</span></small><br>
+                                <small class="text-muted">Chapters: <span class="highlight-text">${chapterCount}</span></small><br>
+                                <small class="text-muted">Updated: <span class="highlight-text">${date}</span></small>
+                            </p>
                         </div>
                     </div>
-                `;
-                })
-                .join("");
+                </div>
+            </div>
+        `;
+        })
+        .join("");
 
             elements.mangaContent.innerHTML = `<div class="container">${resultsHtml}</div>`;
         } else {
